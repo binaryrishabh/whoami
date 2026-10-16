@@ -1,0 +1,13 @@
+[
+  { "file": "audio/meadow-wind.mp3", "role": "ambience", "title": "summer meadow with wind", "author": "Garuda1982", "source": "https://freesound.org/people/Garuda1982/sounds/639459/", "license": "CC0 1.0" },
+  { "file": "audio/drone.mp3", "role": "the drone's rotors (10 s of the hover)", "title": "Dji Mavic Mini 2 hover above ground UP-DOWN XY mic placement Zoom H5.wav", "author": "Sadiquecat", "source": "https://freesound.org/people/Sadiquecat/sounds/683298/", "license": "CC0 1.0" },
+  { "file": "audio/waterfall.mp3", "role": "waterfalls", "title": "Waterfall 01 (loop).MP3", "author": "VKProduktion", "source": "https://freesound.org/people/VKProduktion/sounds/215712/", "license": "CC0 1.0" },
+  { "file": "audio/tap.mp3", "role": "interface tap", "title": "Putting a pencil on paper to write", "author": "ani_music", "source": "https://freesound.org/people/ani_music/sounds/632474/", "license": "CC0 1.0" },
+  { "file": "assets/tex/cliff_side_*", "role": "island rock", "title": "Cliff Side", "author": "Poly Haven", "source": "https://polyhaven.com/a/cliff_side", "license": "CC0 1.0" },
+  { "file": "assets/tex/grass_ground_*", "role": "meadows", "title": "Grass Ground", "author": "Poly Haven", "source": "https://polyhaven.com/a/grass_ground", "license": "CC0 1.0" },
+  { "file": "assets/tex/concrete_wall_008_*", "role": "concrete", "title": "Concrete Wall 008", "author": "Poly Haven", "source": "https://polyhaven.com/a/concrete_wall_008", "license": "CC0 1.0" },
+  { "file": "assets/tex/japanese_cedar_planks_*", "role": "cedar cladding, bridge planks", "title": "Japanese Cedar Planks", "author": "Poly Haven", "source": "https://polyhaven.com/a/japanese_cedar_planks", "license": "CC0 1.0" },
+  { "file": "assets/tex/leaf_broad.webp", "role": "broadleaf trees", "title": "Leaf Set 024", "author": "ambientCG", "source": "https://ambientcg.com/view?id=LeafSet024", "license": "CC0 1.0" },
+  { "file": "assets/tex/leaf_needle.webp", "role": "firs", "title": "Leaf Set 019", "author": "ambientCG", "source": "https://ambientcg.com/view?id=LeafSet019", "license": "CC0 1.0" },
+  { "file": "assets/sky.hdr", "role": "sky and reflections", "title": "Qwantani Late Afternoon (Pure Sky)", "author": "Poly Haven", "source": "https://polyhaven.com/a/qwantani_late_afternoon_puresky", "license": "CC0 1.0" }
+]

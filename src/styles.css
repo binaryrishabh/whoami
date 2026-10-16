@@ -1,0 +1,106 @@
+/* Solid, dark cards over the world: every word stays readable whatever is behind it. */
+:root {
+  --card: #121315;
+  --ink: #EEECE7;
+  --soft: #A6A39C;
+  --line: #2A2B2E;
+  --accent: #E0B470;
+  --display: 'Archivo Variable', 'Archivo', 'Arial Narrow', Arial, sans-serif;
+  --text: 'Schibsted Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --gutter: clamp(16px, 3vw, 40px);
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; background: #dcd9d3; overflow: hidden; }
+body { font: 400 15.5px/1.55 var(--text); color: var(--ink); -webkit-font-smoothing: antialiased; }
+a { color: var(--ink); text-decoration: underline; text-decoration-color: #5a5852; text-underline-offset: 4px; transition: text-decoration-color .2s; }
+a:hover { text-decoration-color: var(--accent); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.stage { position: fixed !important; inset: 0; }
+
+/* island names, floating over each island */
+.tag { font: 600 12.5px/1 var(--text); letter-spacing: .01em; color: var(--ink); background: var(--card); padding: 7px 10px 8px; border-radius: 2px; white-space: nowrap; transition: background .2s, color .2s; }
+.tag:hover { background: #26282b; }
+.tag-n { margin-right: 7px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.tag.is-here { background: var(--ink); color: var(--card); }
+
+/* loading */
+.loader { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: #dcd9d3; color: #1d1e20; transition: opacity 1.4s ease .2s, visibility 0s linear 1.6s; }
+.loader-in { width: min(320px, 70vw); }
+.loader h2 { margin: 0 0 4px; font: 800 26px/1 var(--display); font-stretch: 110%; letter-spacing: -0.03em; }
+.loader p { margin: 0 0 18px; font: 500 13.5px/1.4 var(--text); color: #5d5b56; }
+.loader-bar { height: 2px; background: #c3bfb7; }
+.loader-bar i { display: block; height: 100%; background: #1d1e20; transition: width .3s ease; }
+.loader.is-done { opacity: 0; visibility: hidden; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* first screen */
+.intro { animation: rise .9s cubic-bezier(.22, 1, .36, 1) both; position: fixed; z-index: 20; left: var(--gutter); bottom: var(--gutter); width: min(440px, calc(100vw - 2 * var(--gutter))); background: var(--card); padding: 26px 26px 24px; border-radius: 2px; box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+.intro h1 { margin: 0 0 8px; font: 800 30px/1.02 var(--display); font-stretch: 110%; letter-spacing: -0.03em; }
+.intro p { margin: 0 0 16px; color: var(--soft); }
+.keys { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 7px; font-size: 14px; color: var(--ink); }
+kbd { display: inline-block; min-width: 22px; padding: 2px 6px; margin-right: 3px; font: 600 12px/1.4 var(--text); text-align: center; color: var(--ink); background: #232528; border-radius: 2px; }
+.go { font: 700 15px/1 var(--text); background: var(--ink); color: var(--card); padding: 13px 18px; border-radius: 2px; }
+.go:hover { background: #fff; }
+
+/* the card for the island you are over */
+.panel { position: fixed; z-index: 20; right: var(--gutter); top: var(--gutter); width: min(430px, calc(100vw - 2 * var(--gutter))); max-height: calc(100vh - 2 * var(--gutter) - 40px); overflow: auto; background: var(--card); padding: 26px 26px 22px; border-radius: 2px; box-shadow: 0 20px 60px rgba(0, 0, 0, .28); opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .55s cubic-bezier(.22, 1, .36, 1); }
+.panel.is-open { opacity: 1; transform: none; }
+.p-kind { margin: 0 0 6px; font: 600 13px/1.3 var(--text); color: var(--accent); }
+.p-title { margin: 0 0 6px; font: 800 26px/1.08 var(--display); font-stretch: 108%; letter-spacing: -0.025em; }
+.p-meta { margin: 0 0 10px; color: var(--soft); font-size: 14px; }
+.p-stack { margin: 0 0 12px; color: var(--soft); font-size: 13.5px; }
+.p-lead { margin: 0 0 12px; font-size: 15.5px; }
+.p-list { margin: 0; padding: 0 0 0 18px; display: grid; gap: 8px; font-size: 14.5px; }
+.p-list li::marker { color: var(--accent); }
+.p-block + .p-block { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.p-links { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-weight: 600; font-size: 14.5px; }
+.p-skills { margin: 4px 0 0; display: grid; gap: 12px; }
+.p-skills dt { font: 700 13.5px/1.3 var(--text); color: var(--accent); }
+.p-skills dd { margin: 2px 0 0; font-size: 14.5px; }
+.p-stats { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 14px; }
+.p-stats li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: baseline; }
+.p-num { font: 800 28px/1 var(--display); font-stretch: 108%; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.p-stats small { display: block; color: var(--soft); font-size: 13.5px; }
+.p-mail { margin: 4px 0 0; font: 700 19px/1.3 var(--display); overflow-wrap: anywhere; }
+.p-credits { margin: 18px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--soft); }
+.p-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.p-nav button { font: 600 13.5px/1.3 var(--text); color: var(--soft); text-align: left; max-width: 48%; }
+.p-nav button:last-child { text-align: right; }
+.p-nav button:hover { color: var(--ink); }
+.p-fold { display: none; }
+
+/* top-left: map and sound */
+.bar { position: fixed; z-index: 25; left: var(--gutter); top: var(--gutter); display: flex; gap: 6px; animation: rise .8s ease both; }
+.chip { font: 600 12.5px/1 var(--text); color: var(--ink); background: var(--card); padding: 9px 12px 10px; border-radius: 2px; }
+.chip:hover { background: #26282b; }
+.chip.is-on { background: var(--ink); color: var(--card); }
+
+/* touch: a stick bottom-left, rise and sink bottom-right */
+.joy { position: fixed; z-index: 22; inset: auto 0 0 0; height: 0; }
+.joy-base { position: fixed; left: 22px; bottom: 26px; width: 116px; height: 116px; border-radius: 50%; background: rgba(18, 19, 21, 0.78); border: 1px solid #3a3b3e; touch-action: none; display: grid; place-items: center; }
+.joy-knob { width: 46px; height: 46px; border-radius: 50%; background: var(--ink); pointer-events: none; transition: transform .05s linear; }
+.joy-lift { position: fixed; right: 22px; bottom: 30px; display: grid; gap: 10px; }
+.joy-lift button { width: 54px; height: 54px; border-radius: 50%; background: rgba(18, 19, 21, 0.78); border: 1px solid #3a3b3e; color: var(--ink); font: 700 20px/1 var(--text); touch-action: none; }
+.joy-lift button:active { background: var(--ink); color: var(--card); }
+
+.hint { position: fixed; z-index: 15; left: 50%; bottom: 14px; transform: translateX(-50%); margin: 0; font: 500 12.5px/1 var(--text); color: #1f2124; background: rgba(238, 236, 231, 0.92); padding: 8px 12px; border-radius: 2px; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .panel { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; max-height: 46vh; padding: 18px 18px 14px; }
+  .panel.is-folded { max-height: none; padding: 0; background: transparent; box-shadow: none; left: auto; bottom: 166px; }
+  .panel.is-folded .p-body, .panel.is-folded .p-nav { display: none; }
+  .p-fold { display: block; margin: -4px 0 10px auto; font: 600 12.5px/1 var(--text); color: var(--soft); padding: 6px 0; }
+  .panel.is-folded .p-fold { margin: 0; padding: 12px 14px; background: var(--card); color: var(--ink); border-radius: 2px; }
+  .p-title { font-size: 22px; }
+  .intro { padding: 20px; }
+  .intro h1 { font-size: 25px; }
+  .hint { display: none; }
+}
+
+/* no WebGL: a plain card with the essentials */
+.nogl { max-width: 560px; margin: 12vh auto 0; padding: 28px; background: var(--card); border-radius: 2px; }
+.nogl h1 { margin: 0 0 10px; font: 800 30px/1.05 var(--display); font-stretch: 110%; letter-spacing: -0.03em; }
+.nogl p { margin: 0 0 14px; }
+.nogl-note { color: var(--soft); font-size: 14.5px; }
+html:has(.nogl), body:has(.nogl) { overflow: auto; }
