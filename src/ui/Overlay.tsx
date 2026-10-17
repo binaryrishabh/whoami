@@ -84,6 +84,8 @@ function Content({ island }: { island: Island }) {
 }
 
 const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+const numberWord = (k: number) => WORDS[k] ?? String(k);
 const nameOf = (i: number) => (PLACED[i].island.kind === 'about' ? 'Home' : PLACED[i].island.title);
 
 export function Overlay() {
@@ -109,6 +111,7 @@ export function Overlay() {
     addEventListener('pointerdown', go, { once: true }); addEventListener('keydown', go, { once: true });
     const keys = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest?.('input,textarea')) return;
+      if (e.key === 'Escape' && useUI.getState().overview) useUI.getState().set({ overview: false });
       if (e.key.toLowerCase() === 'm') { useUI.getState().set({ overview: !useUI.getState().overview, started: true }); sound.tap(0.3); }
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'e', 'q'].includes(e.key.toLowerCase())) useUI.getState().set({ overview: false, flown: true });
     };
@@ -137,6 +140,26 @@ export function Overlay() {
       {!started && loaded && introReady && <Title onBegin={begin} />}
       {started && <Arrival />}
 
+      {overview && (
+        <aside className="atlas" aria-label="All islands">
+          <p className="at-kicker">The map</p>
+          <h2 className="at-title">{numberWord(n)} islands</h2>
+          <p className="at-lead">Click a name, here or over its island, and the drone flies you there.</p>
+          <ol className="at-list">
+            {PLACED.map((p, i) => (
+              <li key={i}>
+                <button className={i === active ? 'is-here' : ''} onClick={() => go(i)}>
+                  <span className="at-n">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="at-name">{nameOf(i)}</span>
+                  {i === active && <span className="at-here">You are here</span>}
+                </button>
+              </li>
+            ))}
+          </ol>
+          <p className="at-keys"><kbd>M</kbd> or <kbd>Esc</kbd> to close <span>·</span> drag to turn the world</p>
+        </aside>
+      )}
+
       {started && island && !overview && (
         <aside className={`panel${active >= 0 ? ' is-open' : ''}${sheetOpen ? '' : ' is-folded'}`} key={shown} aria-live="polite">
           {touch && <button className="p-fold" onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>{sheetOpen ? 'Hide' : nameOf(shown)}</button>}
@@ -150,7 +173,7 @@ export function Overlay() {
 
       {started && touch && !(island && sheetOpen && active >= 0) && <Joystick />}
 
-      {started && !touch && !hintGone && (
+      {started && !touch && !hintGone && !overview && (
         <p className="hint" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><b>Fly</b><span>Space and Shift to rise and sink · drag to look</span></p>
       )}
     </>

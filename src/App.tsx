@@ -65,7 +65,7 @@ function Labels() {
       v.copy(at).project(camera);
       const x = (v.x * 0.5 + 0.5) * size.width, y = (-v.y * 0.5 + 0.5) * size.height;
       const clear = v.z < 1 && x > 90 && x < size.width - 90 && y > 70 && y < size.height - 60
-        && !(panel && x > size.width - 500) && !(x < 300 && y < 100);
+        && !(panel && x > size.width - 500) && !(x < 300 && y < 100) && !(ui.overview && x - el.offsetWidth / 2 < 360);
       el.dataset.clear = clear ? '1' : '0';
     });
   });

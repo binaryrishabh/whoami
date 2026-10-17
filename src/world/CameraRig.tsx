@@ -131,7 +131,7 @@ export function CameraRig() {
     // keep the subject clear of the cards: the island slides left of the panel on desktop, up above the sheet on phones
     const desktop = size.width >= 900;
     const panel = ui.started && ui.active >= 0 && !ui.overview;
-    const wx = pinned ? 0 : !ui.started ? (desktop ? -Math.min(size.width * 0.13, 240) : 0) : panel && desktop ? Math.min(size.width * 0.16, 280) : 0;
+    const wx = pinned ? 0 : ui.overview && desktop ? -Math.min(size.width * 0.12, 190) : !ui.started ? (desktop ? -Math.min(size.width * 0.13, 240) : 0) : panel && desktop ? Math.min(size.width * 0.16, 280) : 0;
     const wy = pinned ? 0 : desktop ? 0 : (!ui.started || panel) ? size.height * 0.2 : 0;
     const s = shift.current, ks = 1 - Math.exp(-dt * 2.5);
     s.x += (wx - s.x) * ks; s.y += (wy - s.y) * ks;
