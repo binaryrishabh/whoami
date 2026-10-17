@@ -28,6 +28,8 @@ Everything the world says lives in **`src/site.config.ts`**: your name, role, su
 | `education` | a small campus with a clock tower | school, degree, dates, place |
 | `contact` | a lighthouse | email and links |
 
+Each island can also take a `tagline`: the italic line under its name when you arrive (each kind has a sensible default). Two more settings live at the top of the file: `tagline`, the line under your name on the title screen, and `loadingLines`, the sentences shown one at a time while the world loads.
+
 Several islands of the same kind are fine (that is how the three projects work). Bigger islands (`about`, `experience`, `skills`, `github`) also get a spring and a waterfall.
 
 ### GitHub data
@@ -39,6 +41,21 @@ bun run github
 ```
 
 (The username is set in `scripts/github.mjs`.)
+
+## The screens
+
+- **Loading:** stills of the world itself (`public/loading/art-01…06.webp`) crossfade and slowly push in, while a rope pays out with the real download progress. It is plain HTML in `index.html`, so it paints before any script runs; `src/ui/Loader.tsx` takes over and hands off to the live opening shot.
+- **Title:** the name, role and tagline over the world, once the opening shot lands. Any key or a click takes off.
+- **Arrival:** each island's number, name and tagline, large, for a few seconds as the camera settles.
+- **Map (M):** the whole ring from above, with an index of every island.
+- **In flight:** a compass strip with every island at its bearing.
+- **Too small a window** (under 960 × 560, phones included): the world pauses behind a page that says so and still gives the email and links.
+
+To refresh the loading stills after changing the world, render new frames at 1920 × 1080 with the dev hooks (`__dockView(i, yaw, pitch, zoom)` pins the camera on an island, with the interface hidden) and save them over `public/loading/art-*.webp`. The link-preview card is `public/og.jpg`.
+
+## Deploying
+
+Import the repository on Vercel with the Vite preset and default settings; every push to `main` deploys. The build fills in the site's address for link previews from `VERCEL_PROJECT_PRODUCTION_URL` (or `SITE_URL`, if you set one).
 
 ## Controls
 
