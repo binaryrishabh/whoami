@@ -51,7 +51,7 @@ bun run github
 - **In flight:** a compass strip with every island at its bearing.
 - **Too small a window** (under 960 × 560, phones included): the world pauses behind a page that says so and still gives the email and links.
 
-To refresh the loading stills after changing the world, render new frames at 1920 × 1080 with the dev hooks (`__dockView(i, yaw, pitch, zoom)` pins the camera on an island, with the interface hidden) and save them over `public/loading/art-*.webp`. The link-preview card is `public/og.jpg`.
+To refresh the loading stills after changing the world, render new frames at 1920 × 1080 with the dev hooks (`__dockView(i, yaw, pitch, zoom)` pins the camera on an island; hide `.bar`, `.title`, `.panel`, `.hint` and `.tag` with a style tag first) and save them over `public/loading/art-*.webp`. The link-preview card is `public/og.jpg`.
 
 ## Deploying
 
