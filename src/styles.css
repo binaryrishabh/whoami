@@ -119,6 +119,18 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 22px; 
 .p-nav button:hover { color: var(--ink); }
 .p-fold { display: none; }
 
+/* ── in flight: islands by bearing along a strip at the top ── */
+.compass { position: fixed; z-index: 16; top: calc(var(--gutter) + 4px); left: 50%; transform: translateX(-50%); display: grid; justify-items: center; pointer-events: none; opacity: 0; transition: opacity .5s ease; }
+.compass.is-on { opacity: 1; }
+.c-strip { position: relative; height: 34px; overflow: hidden; background: rgba(15, 17, 22, .78); border-radius: 3px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+.c-strip::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(242, 237, 227, .55); box-shadow: 0 0 6px rgba(var(--shade), .5); }
+.c-ticks { position: absolute; inset: 11px 0; background-image: linear-gradient(90deg, rgba(242, 237, 227, .55) 1px, transparent 1px); background-repeat: repeat-x; }
+.c-nose { position: absolute; left: 50%; top: 2px; width: 1px; height: 30px; background: var(--accent); }
+.c-mark { position: absolute; left: 50%; top: 4px; margin-left: -14px; width: 28px; display: grid; place-items: center; transition: opacity .3s; }
+.c-mark b { display: grid; place-items: center; min-width: 26px; height: 24px; padding: 0 5px; font: 600 11.5px/1 var(--text); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--card); border-radius: 3px; }
+.c-mark.is-ahead b { color: var(--card); background: var(--accent); }
+.c-ahead { margin: 6px 0 0; min-height: 1em; font: italic 400 17px/1.2 var(--serif); color: var(--ink); text-shadow: 0 1px 3px rgba(var(--shade), .7), 0 1px 16px rgba(var(--shade), .7); }
+
 /* ── the map's index: every island, in order ── */
 .atlas { position: fixed; z-index: 20; left: var(--gutter); top: calc(var(--gutter) + 52px); width: 300px; max-height: calc(100vh - var(--gutter) * 2 - 52px); overflow: auto; background: var(--card); padding: 22px 22px 18px; border-radius: 4px; box-shadow: 0 24px 70px rgba(0, 0, 0, .35); animation: rise .6s var(--ease) both; }
 .at-kicker { margin: 0 0 8px; font: 600 11.5px/1 var(--text); letter-spacing: .28em; text-transform: uppercase; color: var(--accent); }

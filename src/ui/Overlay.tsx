@@ -8,6 +8,7 @@ import { openingSeconds } from '../world/CameraRig';
 import { sound } from '../audio';
 import { Joystick } from './Joystick';
 import { Title, Arrival } from './Screens';
+import { Compass } from './Compass';
 
 const ext = { target: '_blank', rel: 'noopener' } as const;
 
@@ -139,6 +140,7 @@ export function Overlay() {
 
       {!started && loaded && introReady && <Title onBegin={begin} />}
       {started && <Arrival />}
+      <Compass />
 
       {overview && (
         <aside className="atlas" aria-label="All islands">
