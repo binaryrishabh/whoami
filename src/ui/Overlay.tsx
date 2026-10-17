@@ -121,7 +121,7 @@ export function Overlay() {
   }, []);
   // the controls hint fades once the visitor has flown a little
   const [hintGone, setHintGone] = useState(false);
-  useEffect(() => { if (!flown) return; const t = setTimeout(() => setHintGone(true), 6000); return () => clearTimeout(t); }, [flown]);
+  useEffect(() => { if (!started) return; const t = setTimeout(() => setHintGone(true), flown ? 6000 : 25000); return () => clearTimeout(t); }, [flown, started]);
 
   const go = (i: number) => { sound.tap(); set({ started: true, overview: false }); flyTo(i); };
   const begin = useCallback(() => { void sound.start(); go(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
