@@ -20,6 +20,7 @@ export type UIState = {
   sound: boolean;
   overview: boolean;        // the whole world from high up, every island labelled
   flown: boolean;           // the visitor has steered at least once
+  arrived: number;          // the island the camera last settled on (for its arrival card), -1 for none
   set: (p: Partial<UIState>) => void;
 };
 
@@ -30,5 +31,6 @@ export const useUI = create<UIState>(set => ({
   sound: sound.enabled,
   overview: false,
   flown: false,
+  arrived: -1,
   set: p => set(p),
 }));

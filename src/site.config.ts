@@ -13,7 +13,8 @@
  */
 
 export type Link = { label: string; url: string };
-export type Island =
+/** every island may also carry a `tagline`: the italic line under its name when you arrive */
+export type Island = { tagline?: string } & (
   | { kind: 'about'; title: string }
   | { kind: 'experience'; title: string; roles: { role: string; org: string; period: string; place: string; stack: string; url?: string; points: string[] }[] }
   | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[] }
@@ -21,13 +22,26 @@ export type Island =
   | { kind: 'stats'; title: string; items: { label: string; value: number; display: string; note: string; url: string }[] }
   | { kind: 'github'; title: string; user: string }
   | { kind: 'education'; title: string; school: string; degree: string; period: string; place: string }
-  | { kind: 'contact'; title: string };
+  | { kind: 'contact'; title: string }
+);
 
 export const site = {
   name: 'Rishabh Srivastava',
   role: 'Full-stack engineer',
   summary: 'Full-stack engineer (TypeScript, React, Node.js/Bun, PostgreSQL, Redis) who ships production apps and LLM-powered pipelines, and has built door detection that reads CAD floor plans directly from vector PDFs.',
   location: 'India (IST) · open to remote, or onsite anywhere in India',
+  /** the italic line under the name on the title screen */
+  tagline: 'A small world of floating islands, one for each part of my work',
+  /** shown one at a time on the loading screen */
+  loadingLines: [
+    'Every island is one part of my work. The rope bridges show the way round.',
+    'Click any island’s name and the drone flies you there.',
+    'Press M at any time to see the whole world from above.',
+    'The stone dial is a real year of my GitHub: a spoke for every week, a stone for every day.',
+    'The towers grow with my competitive programming numbers.',
+    'Fly close to a waterfall and you will hear it.',
+    'The quickest way to reach me is email. You will find it at the lighthouse.',
+  ],
   email: 'srivastavarishabh2001@gmail.com',
   links: [
     { label: 'GitHub', url: 'https://github.com/binaryrishabh' },

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useProgress } from '@react-three/drei';
+import { useCallback, useEffect, useState } from 'react';
 import { site, type Island } from '../site.config';
 import github from '../data/github.json';
 import { useUI } from '../store';
@@ -8,6 +7,7 @@ import { PLACED } from '../world/layout';
 import { openingSeconds } from '../world/CameraRig';
 import { sound } from '../audio';
 import { Joystick } from './Joystick';
+import { Title, Arrival } from './Screens';
 
 const ext = { target: '_blank', rel: 'noopener' } as const;
 
@@ -88,7 +88,6 @@ const nameOf = (i: number) => (PLACED[i].island.kind === 'about' ? 'Home' : PLAC
 
 export function Overlay() {
   const { active, loaded, started, sound: soundOn, overview, flown, set } = useUI();
-  const { progress } = useProgress();
   const [shown, setShown] = useState(-1);
   const [sheetOpen, setSheetOpen] = useState(true);
   // keep the last island's card up briefly while flying between islands
@@ -97,11 +96,11 @@ export function Overlay() {
     const t = setTimeout(() => setShown(-1), 900);
     return () => clearTimeout(t);
   }, [active]);
-  // the intro card waits for the opening shot to settle
+  // the title waits for the opening shot to settle
   const [introReady, setIntroReady] = useState(false);
   useEffect(() => {
     if (!loaded) return;
-    const t = setTimeout(() => setIntroReady(true), openingSeconds * 1000 * 0.72);
+    const t = setTimeout(() => setIntroReady(true), openingSeconds * 1000 * 0.62);
     return () => clearTimeout(t);
   }, [loaded]);
   // sound can only start after the visitor touches the page
@@ -121,52 +120,27 @@ export function Overlay() {
   useEffect(() => { if (!flown) return; const t = setTimeout(() => setHintGone(true), 6000); return () => clearTimeout(t); }, [flown]);
 
   const go = (i: number) => { sound.tap(); set({ started: true, overview: false }); flyTo(i); };
+  const begin = useCallback(() => { void sound.start(); go(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const island = shown >= 0 ? PLACED[shown]?.island : null;
   const n = PLACED.length;
   const toggleSound = () => { const on = !soundOn; void sound.start(); sound.setEnabled(on); set({ sound: on }); };
 
   return (
     <>
-      <div className={`loader${loaded ? ' is-done' : ''}`} aria-hidden={loaded}>
-        <div className="loader-in">
-          <h2>{site.name}</h2>
-          <p>Raising the islands…</p>
-          <div className="loader-bar"><i style={{ width: `${Math.round(progress)}%` }} /></div>
-        </div>
-      </div>
-
       {loaded && (
         <nav className="bar" aria-label="World">
-          <button className={`chip${overview ? ' is-on' : ''}`} onClick={() => { sound.tap(0.3); set({ overview: !overview, started: true }); }} aria-pressed={overview}>Map</button>
+          <button className={`chip${overview ? ' is-on' : ''}`} onClick={() => { sound.tap(0.3); set({ overview: !overview, started: true }); }} aria-pressed={overview}><kbd>M</kbd>Map</button>
           <button className="chip" onClick={toggleSound} aria-pressed={soundOn}>{soundOn ? 'Sound on' : 'Sound off'}</button>
         </nav>
       )}
 
-      {!started && loaded && introReady && (
-        <section className="intro" aria-label="Introduction">
-          <h1>{site.name}</h1>
-          <p>{site.role}. This portfolio is a small world of floating islands, one for each part of my work.</p>
-          {touch ? (
-            <ul className="keys">
-              <li>Drag the stick to fly, the arrows to rise and sink</li>
-              <li>Or tap any island’s name to fly there</li>
-            </ul>
-          ) : (
-            <ul className="keys">
-              <li><kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd> fly forward and back</li>
-              <li><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> turn</li>
-              <li><kbd>Space</kbd> rise · <kbd>Shift</kbd> sink · drag to look around</li>
-              <li><kbd>M</kbd> map · or click any island’s name to fly there</li>
-            </ul>
-          )}
-          <button className="go" onClick={() => { void sound.start(); go(1); }}>Take off</button>
-        </section>
-      )}
+      {!started && loaded && introReady && <Title onBegin={begin} />}
+      {started && <Arrival />}
 
       {started && island && !overview && (
         <aside className={`panel${active >= 0 ? ' is-open' : ''}${sheetOpen ? '' : ' is-folded'}`} key={shown} aria-live="polite">
           {touch && <button className="p-fold" onClick={() => setSheetOpen(o => !o)} aria-expanded={sheetOpen}>{sheetOpen ? 'Hide' : nameOf(shown)}</button>}
-          <div className="p-body"><Content island={island} /></div>
+          <div className="p-body"><p className="p-count"><b>{String(shown + 1).padStart(2, '0')}</b> / {String(n).padStart(2, '0')}</p><Content island={island} /></div>
           <div className="p-nav">
             <button onClick={() => go((shown + n - 1) % n)}>← {nameOf((shown + n - 1) % n)}</button>
             <button onClick={() => go((shown + 1) % n)}>{nameOf((shown + 1) % n)} →</button>
@@ -176,7 +150,9 @@ export function Overlay() {
 
       {started && touch && !(island && sheetOpen && active >= 0) && <Joystick />}
 
-      {started && !touch && !hintGone && <p className="hint" aria-hidden="true">W A S D or arrows to fly · Space / Shift up and down · drag to look · M for the map</p>}
+      {started && !touch && !hintGone && (
+        <p className="hint" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><b>Fly</b><span>Space and Shift to rise and sink · drag to look</span></p>
+      )}
     </>
   );
 }

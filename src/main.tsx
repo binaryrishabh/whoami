@@ -1,5 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/newsreader/opsz-italic.css';
 import '@fontsource/schibsted-grotesk/400.css';
 import '@fontsource/schibsted-grotesk/500.css';
 import '@fontsource/schibsted-grotesk/600.css';
@@ -26,4 +28,6 @@ function NoWebGL() {
   );
 }
 
-createRoot(document.getElementById('root')!).render(hasWebGL2() ? <App /> : <NoWebGL />);
+const gl = hasWebGL2();
+if (!gl) document.getElementById('loading')?.remove();
+createRoot(document.getElementById('root')!).render(gl ? <App /> : <NoWebGL />);

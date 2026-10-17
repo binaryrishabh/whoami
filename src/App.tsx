@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Clouds, Cloud, Html, useProgress, PerformanceMonitor } from '@react-three/drei';
+import { Environment, Clouds, Cloud, Html, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, N8AO, ToneMapping, Bloom, Vignette, Noise, SMAA, BrightnessContrast } from '@react-three/postprocessing';
 import { ToneMappingMode, BlendFunction } from 'postprocessing';
 import { MiniatureBlurEffect } from './world/MiniatureBlur';
@@ -14,6 +14,8 @@ import { SUN_COLOUR, SUN_DIR } from './world/light';
 import { PLACED, RING, onIsland } from './world/layout';
 import { drone, useUI } from './store';
 import { Overlay } from './ui/Overlay';
+import { Loader } from './ui/Loader';
+import { RoomScreen, useRoomy } from './ui/Screens';
 import { sound } from './audio';
 import { FALLS } from './world/Features';
 
@@ -51,14 +53,29 @@ function Labels() {
   const started = useUI(s => s.started);
   const overview = useUI(s => s.overview);
   const near = useNearest(4);
+  const spots = useMemo(() => PLACED.map(p => onIsland(p, 0, 0, p.island.kind === 'about' ? 7.5 : 8)), []);
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const v = useMemo(() => new THREE.Vector3(), []);
+  // a name that would sit at the very edge of the screen, under a card or under the top-left buttons stays hidden
+  useFrame(({ camera, size }) => {
+    const ui = useUI.getState(), panel = ui.started && ui.active >= 0 && !ui.overview;
+    spots.forEach((at, i) => {
+      const el = refs.current[i];
+      if (!el) return;
+      v.copy(at).project(camera);
+      const x = (v.x * 0.5 + 0.5) * size.width, y = (-v.y * 0.5 + 0.5) * size.height;
+      const clear = v.z < 1 && x > 90 && x < size.width - 90 && y > 70 && y < size.height - 60
+        && !(panel && x > size.width - 500) && !(x < 300 && y < 100);
+      el.dataset.clear = clear ? '1' : '0';
+    });
+  });
   return (
     <>
       {PLACED.map(p => {
-        const at = onIsland(p, 0, 0, p.island.kind === 'about' ? 7.5 : 8);
         const show = overview || (started && near.includes(p.index) && active !== p.index);
         return (
-          <Html key={p.index} position={at} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none', opacity: show ? 1 : 0, transition: 'opacity .6s ease' }}>
-            <button className="tag" tabIndex={show ? 0 : -1} style={{ pointerEvents: show ? 'auto' : 'none' }} onClick={() => { sound.tap(); useUI.getState().set({ started: true, overview: false }); flyTo(p.index); }}>
+          <Html key={p.index} position={spots[p.index]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none', opacity: show ? 1 : 0, transition: 'opacity .6s ease' }}>
+            <button ref={el => { refs.current[p.index] = el; }} className="tag" tabIndex={show ? 0 : -1} style={{ pointerEvents: show ? 'auto' : 'none' }} onClick={() => { sound.tap(); useUI.getState().set({ started: true, overview: false }); flyTo(p.index); }}>
               <span className="tag-n">{String(p.index + 1).padStart(2, '0')}</span>{p.island.kind === 'about' ? 'Home' : p.island.title}
             </button>
           </Html>
@@ -150,20 +167,15 @@ function SoundDriver() {
   return null;
 }
 
-function Loader() {
-  const { progress, active } = useProgress();
-  const loaded = useUI(s => s.loaded);
-  useEffect(() => { if (!active && progress >= 100 && !loaded) useUI.getState().set({ loaded: true }); }, [active, progress, loaded]);
-  return null;
-}
-
 export default function App() {
   // start with everything; if the frame rate can't keep up, drop ambient occlusion, then the pixel ratio
   const [dpr, setDpr] = useState(() => Math.min(1.5, window.devicePixelRatio || 1));
   const [low, setLow] = useState(false);
+  // too small a window: the world pauses (and keeps loading) behind a screen that asks for more room
+  const { roomy, size } = useRoomy();
   return (
     <>
-      <Canvas className="stage" shadows={!OFF.has('shadows')} dpr={dpr} gl={{ antialias: false, powerPreference: 'high-performance' }} camera={{ fov: 40, near: 0.3, far: 1200, position: [0, 16, 46] }}>
+      <Canvas className="stage" frameloop={roomy ? 'always' : 'never'} shadows={!OFF.has('shadows')} dpr={dpr} gl={{ antialias: false, powerPreference: 'high-performance' }} camera={{ fov: 40, near: 0.3, far: 1200, position: [0, 16, 46] }}>
         <PerformanceMonitor flipflops={3} bounds={r => [Math.min(55, r * 0.9), r + 1]} onDecline={() => { if (!low) setLow(true); else if (dpr > 1) setDpr(1); }} onFallback={() => { setDpr(1); setLow(true); }} />
         <Suspense fallback={null}>
           <Scene low={low} />
@@ -171,6 +183,7 @@ export default function App() {
       </Canvas>
       <Loader />
       <Overlay />
+      {!roomy && <RoomScreen size={size} />}
     </>
   );
 }

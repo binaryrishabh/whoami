@@ -28,7 +28,12 @@ export function resetOrbit() { orbit.yaw = 0; orbit.pitch = 0; orbit.zoom = 1; }
 
 /** dev only: pin the camera for art direction, e.g. __view([10, 8, 30], [0, 2, 0]) */
 let pinned: { pos: THREE.Vector3; look: THREE.Vector3 } | null = null;
-if (import.meta.env.DEV) (window as any).__view = (p?: number[], l?: number[]) => { pinned = p && l ? { pos: new THREE.Vector3(...p), look: new THREE.Vector3(...l) } : null; };
+if (import.meta.env.DEV) {
+  (window as any).__view = (p?: number[], l?: number[]) => { pinned = p && l ? { pos: new THREE.Vector3(...p), look: new THREE.Vector3(...l) } : null; };
+  /** pin the camera on an island's arrival framing, turned by `yaw` and tilted by `pitch` */
+  (window as any).__dockView = (i: number, yaw = 0, pitch = 0, zoom = 1) => { const v = dockView(PLACED[i], yaw, pitch, zoom); pinned = { pos: v.pos, look: v.look }; };
+  (window as any).__openingPose = () => { pinned = { pos: OPEN_FROM.pos.clone(), look: OPEN_FROM.look.clone() }; };
+}
 
 export function CameraRig() {
   const { camera, size } = useThree();
@@ -96,6 +101,7 @@ export function CameraRig() {
       rate = 1.4;
     } else if (ui.active >= 0 && !drone.input && (drone.target ? drone.pos.distanceTo(drone.target) < 8 : idle.current > 1.2)) {
       cam.mode = 'dock';
+      if (ui.arrived !== ui.active) ui.set({ arrived: ui.active });
       const p = PLACED[ui.active];
       const v = dockView(p, orbit.yaw, orbit.pitch, orbit.zoom * fit);
       want.copy(v.pos); wantLook.copy(v.look);
@@ -103,6 +109,7 @@ export function CameraRig() {
       rate = 1.5;
     } else {
       cam.mode = 'chase';
+      if (ui.active < 0 && ui.arrived !== -1) ui.set({ arrived: -1 }); // left the island: the next arrival gets its card again
       const yaw = drone.yaw + Math.PI + orbit.yaw;
       const el = 0.3 + orbit.pitch;
       const dist = 8 * orbit.zoom * Math.sqrt(fit);
@@ -124,8 +131,8 @@ export function CameraRig() {
     // keep the subject clear of the cards: the island slides left of the panel on desktop, up above the sheet on phones
     const desktop = size.width >= 900;
     const panel = ui.started && ui.active >= 0 && !ui.overview;
-    const wx = !ui.started ? (desktop ? -Math.min(size.width * 0.13, 240) : 0) : panel && desktop ? Math.min(size.width * 0.16, 280) : 0;
-    const wy = desktop ? 0 : (!ui.started || panel) ? size.height * 0.2 : 0;
+    const wx = pinned ? 0 : !ui.started ? (desktop ? -Math.min(size.width * 0.13, 240) : 0) : panel && desktop ? Math.min(size.width * 0.16, 280) : 0;
+    const wy = pinned ? 0 : desktop ? 0 : (!ui.started || panel) ? size.height * 0.2 : 0;
     const s = shift.current, ks = 1 - Math.exp(-dt * 2.5);
     s.x += (wx - s.x) * ks; s.y += (wy - s.y) * ks;
     const pc = camera as THREE.PerspectiveCamera;

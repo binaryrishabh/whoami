@@ -1,0 +1,98 @@
+/* The loading screen. Loaded from index.html, before the app, so it paints at once. */
+@import '@fontsource-variable/newsreader/opsz.css';
+@import '@fontsource-variable/newsreader/opsz-italic.css';
+@import '@fontsource/schibsted-grotesk/500.css';
+@import '@fontsource/schibsted-grotesk/600.css';
+
+html, body { margin: 0; height: 100%; background: #0b0d12; overflow: hidden; }
+
+#loading {
+  --s: max(0.72px, min(calc(100vw / 1920), calc(100vh / 1080)));
+  --mx: max(22px, calc(112 * var(--s)));
+  --mt: max(22px, calc(72 * var(--s)));
+  --mb: max(22px, calc(60 * var(--s)));
+  --paper: 243, 238, 228;
+  --ink: 8, 10, 15;
+  --gold: #e0b470;
+  position: fixed; inset: 0; z-index: 100; overflow: hidden; pointer-events: none;
+  background: #0b0d12; color: rgb(var(--paper));
+  font-family: 'Schibsted Grotesk', system-ui, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased;
+}
+#loading.leaving { opacity: 0; transition: opacity 1.5s cubic-bezier(.45, 0, .3, 1); }
+
+/* the stills: a blurred thumbnail at once, then the real frames crossfading and slowly pushing in */
+.ld-base { position: absolute; inset: -4%; background-size: cover; background-position: center; filter: blur(14px) brightness(.45) saturate(1.1); }
+.ld-art { position: absolute; inset: 0; }
+.ld-s { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.ld-s img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 58% 50%; transform-origin: 58% 52%; }
+
+/* shade where the words sit: a soft darkening under the name and along the foot, so they always read */
+.ld-shade {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(calc(820 * var(--s)) calc(300 * var(--s)) at calc(var(--mx) + 160 * var(--s)) calc(var(--mt) + 12 * var(--s)), rgba(var(--ink), .62), rgba(var(--ink), .32) 45%, rgba(var(--ink), 0) 100%),
+    linear-gradient(0deg, rgba(var(--ink), .78) 0%, rgba(var(--ink), .42) 12%, rgba(var(--ink), 0) 30%);
+}
+
+.ld-mark { position: absolute; left: var(--mx); top: var(--mt); display: flex; align-items: center; gap: max(10px, calc(14 * var(--s))); }
+.ld-glyph { width: max(24px, calc(34 * var(--s))); height: max(24px, calc(34 * var(--s))); overflow: visible; flex: none; }
+.ld-glyph path { fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 120; stroke-dashoffset: 120; animation: ld-draw 2.2s cubic-bezier(.22, .8, .26, 1) .2s forwards; }
+.ld-wm { font: 400 max(17px, calc(25 * var(--s)))/1 'Newsreader Variable', Georgia, serif; letter-spacing: .32em; margin-right: -.32em; text-shadow: 0 1px 2px rgba(var(--ink), .5), 0 1px 18px rgba(var(--ink), .6); }
+
+.ld-foot { position: absolute; left: var(--mx); right: var(--mx); bottom: calc(var(--mb) + env(safe-area-inset-bottom, 0px)); }
+.ld-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: max(12px, calc(18 * var(--s))); }
+.ld-lines { position: relative; flex: 1; min-width: 0; display: grid; }
+.ld-lines::before { content: ''; position: absolute; left: 0; top: .72em; width: max(18px, calc(28 * var(--s))); height: 1px; background: var(--gold); }
+.ld-set, .ld-slow { grid-area: 1 / 1; padding-left: max(30px, calc(44 * var(--s))); }
+.ld-set { display: grid; }
+.ld-set p, .ld-slow { grid-area: 1 / 1; margin: 0; opacity: 0; font: 400 max(18px, calc(23 * var(--s)))/1.4 'Newsreader Variable', Georgia, serif; font-style: italic; color: rgba(var(--paper), .94); text-shadow: 0 1px 2px rgba(var(--ink), .45), 0 1px 14px rgba(var(--ink), .65); transition: opacity .9s ease; }
+.ld-set p.on { opacity: 1; }
+.slow .ld-set { opacity: 0; transition: opacity .5s; }
+.slow .ld-slow { opacity: 1; transition: opacity .8s .5s; }
+
+/* the percentage: each digit rolls on a little drum */
+.ld-pct { flex: none; display: inline-flex; align-items: flex-end; height: 1.15em; font: 600 max(12px, calc(15 * var(--s)))/1.15 'Schibsted Grotesk', system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .04em; color: rgba(var(--paper), .85); text-shadow: 0 1px 10px rgba(var(--ink), .7); }
+.ld-pct .col { display: inline-block; height: 1.15em; overflow: hidden; }
+.ld-pct .col b { display: block; font-weight: inherit; transition: transform .45s cubic-bezier(.22, .8, .26, 1); }
+.ld-pct .col i { display: block; height: 1.15em; font-style: normal; }
+.ld-pct .full, .done .ld-pct .col { display: none; }
+.done .ld-pct .full { display: inline; }
+
+/* the rope: twisted two-ply, the same cord as the bridges, paying out with a glowing bead at its end */
+.ld-line { --p: 0.04; position: relative; height: max(5px, calc(6 * var(--s))); }
+.ld-line::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(var(--paper), .24); }
+.ld-fill { position: absolute; inset: 0; overflow: hidden; clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0); transition: clip-path .6s cubic-bezier(.22, .8, .26, 1); }
+.ld-rope { position: absolute; top: 0; left: -24px; width: calc(100% + 24px); height: 100%; animation: ld-twist 1.6s linear infinite; }
+.ld-head { position: absolute; top: 0; bottom: 0; left: calc(var(--p) * 100%); transition: left .6s cubic-bezier(.22, .8, .26, 1); }
+.ld-head i { position: absolute; top: 50%; left: 0; width: max(6px, calc(8 * var(--s))); height: max(6px, calc(8 * var(--s))); border-radius: 50%; background: #fff4e2; transform: translate(-50%, -50%); box-shadow: 0 0 calc(10 * var(--s)) calc(2 * var(--s)) rgba(255, 196, 120, .85), 0 0 calc(26 * var(--s)) calc(6 * var(--s)) rgba(255, 150, 70, .3); animation: ld-pulse 1.5s ease-in-out infinite alternate; }
+.done .ld-head { opacity: 0; transition: opacity .6s .2s; }
+
+/* if the world cannot start */
+.ld-fail { display: none; }
+#loading.err { pointer-events: auto; }
+.err .ld-lines, .err .ld-pct, .err .ld-head { display: none; }
+.err .ld-art { filter: brightness(.6) saturate(.7); transition: filter 1.2s; }
+.err .ld-line::before { background: rgba(196, 72, 74, .55); }
+.err .ld-rope { animation-play-state: paused; filter: saturate(.3) brightness(.7); }
+.err .ld-fail { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; animation: ld-fade .6s both; }
+.ld-fail h2 { margin: 0 0 6px; font: 400 max(22px, calc(30 * var(--s)))/1.15 'Newsreader Variable', Georgia, serif; }
+.ld-fail p { margin: 0; font-size: max(14px, calc(17 * var(--s))); color: rgba(var(--paper), .82); }
+.ld-fail button { flex: none; min-height: 44px; padding: 0 28px; font: 600 14px/1 'Schibsted Grotesk', system-ui, sans-serif; letter-spacing: .06em; color: rgb(var(--paper)); background: rgba(14, 16, 22, .55); border: 1px solid rgba(var(--paper), .45); border-radius: 999px; cursor: pointer; }
+.ld-fail button:hover { background: rgba(var(--paper), .14); border-color: rgba(var(--paper), .85); }
+
+.ld-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* the words come up once the first still is in */
+.js .ld-wm, .js .ld-row { opacity: 0; }
+.art-in .ld-wm { opacity: 1; transition: opacity 1.4s .2s; }
+.art-in .ld-row { opacity: 1; transition: opacity 1.2s .5s; }
+.err .ld-wm, .err .ld-row { opacity: 1; }
+/* leaving: the words go first, the shade lifts, then the stills dissolve into the live world */
+.done .ld-mark, .done .ld-foot { opacity: 0; transition: opacity .6s; }
+.done .ld-shade { opacity: .3; transition: opacity 1s; }
+
+@keyframes ld-draw { to { stroke-dashoffset: 0; } }
+@keyframes ld-twist { to { transform: translateX(12px); } }
+@keyframes ld-pulse { from { opacity: .65; } to { opacity: 1; } }
+@keyframes ld-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ld-rope, .ld-head i { animation: none; } .ld-glyph path { animation-duration: .01s; } }
