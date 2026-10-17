@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Clouds, Cloud, Html, PerformanceMonitor } from '@react-three/drei';
@@ -184,6 +185,7 @@ export default function App() {
       <Loader />
       <Overlay />
       {!roomy && <RoomScreen size={size} />}
+      <Analytics />
     </>
   );
 }
