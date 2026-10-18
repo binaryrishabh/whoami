@@ -91,7 +91,7 @@ function Name({ p, mats }: { p: Placed; mats: Mats }) {
     <group>
       <B m={mats.concrete} p={[0, y + H / 2, z]} s={[W, H, D]} />
       <mesh geometry={big} material={mats.plaster} position={[0, y + H, z - 0.1]} castShadow receiveShadow />
-      <mesh geometry={small} material={mats.brass} position={[0, y + H / 2 - 0.25, z + D / 2 + 0.025]} castShadow />
+      <mesh geometry={small} material={mats.brass} position={[0, y + H / 2 - 0.04, z + D / 2 + 0.025]} castShadow />
       {/* the landing pad: a round stone terrace with a brass ring */}
       <mesh material={mats.concrete} position={[pad.x, py + 0.04, pad.y]} receiveShadow castShadow><cylinderGeometry args={[1.45, 1.55, 0.14, 64]} /></mesh>
       <mesh material={mats.brass} position={[pad.x, py + 0.112, pad.y]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[1.0, 1.06, 64]} /></mesh>
@@ -211,14 +211,14 @@ function Monolith({ p, mats }: { p: Placed; mats: Mats }) {
 /* ── towers whose heights follow the numbers ── */
 function Towers({ p, mats }: { p: Placed; mats: Mats }) {
   if (p.island.kind !== 'stats') return null;
-  const items = p.island.items, max = Math.max(...items.map(i => i.value));
+  const items = p.island.items, max = Math.max(...items.map(i => i.towerWeight ?? i.value));
   const cz = PLANS[p.index].footprint[0].z, span = (items.length - 1) * 1.9;
   const y0 = seat(p, 0, cz, span + 2, 2.4) - 0.06;
   return (
     <group>
       <B m={mats.concreteDark} p={[0, y0 + 0.15, cz]} s={[span + 2.2, 0.3, 2.6]} />
       {items.map((it, i) => {
-        const x = -span / 2 + i * 1.9, z = cz + (i % 2 ? -0.35 : 0.25), h = 1.8 + 5.6 * (it.value / max);
+        const x = -span / 2 + i * 1.9, z = cz + (i % 2 ? -0.35 : 0.25), h = 1.8 + 5.6 * ((it.towerWeight ?? it.value) / max);
         const floors = Math.max(2, Math.round(h / 0.55));
         return (
           <group key={i} position={[x, y0 + 0.3, z]}>

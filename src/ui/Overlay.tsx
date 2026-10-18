@@ -71,7 +71,7 @@ function Content({ island }: { island: Island }) {
         <p className="p-kind">{island.title}</p>
         <h2 className="p-title">{island.school}</h2>
         <p className="p-lead">{island.degree}</p>
-        <p className="p-meta">{island.period} · {island.place}</p>
+        <p className="p-meta">{[island.period, island.place].filter(Boolean).join(' · ')}</p>
       </>);
     case 'contact':
       return (<>

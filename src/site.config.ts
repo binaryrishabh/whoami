@@ -19,9 +19,9 @@ export type Island = { tagline?: string } & (
   | { kind: 'experience'; title: string; roles: { role: string; org: string; period: string; place: string; stack: string; url?: string; points: string[] }[] }
   | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[] }
   | { kind: 'skills'; title: string; groups: { name: string; items: string[] }[] }
-  | { kind: 'stats'; title: string; items: { label: string; value: number; display: string; note: string; url: string }[] }
+  | { kind: 'stats'; title: string; items: { label: string; value: number; towerWeight?: number; display: string; note: string; url: string }[] }
   | { kind: 'github'; title: string; user: string }
-  | { kind: 'education'; title: string; school: string; degree: string; period: string; place: string }
+  | { kind: 'education'; title: string; school: string; degree: string; period?: string; place: string }
   | { kind: 'contact'; title: string }
 );
 
@@ -105,14 +105,15 @@ export const site = {
     },
     {
       kind: 'stats', title: 'Competitive programming',
+      // Keep the existing tower proportions independent of the updated statistics.
       items: [
-        { label: 'LeetCode', value: 1700, display: '1700+', note: 'rating · 800+ problems solved', url: 'https://leetcode.com/u/binaryrishabh/' },
-        { label: 'AtCoder', value: 1400, display: '1400+', note: 'rating', url: 'https://atcoder.jp/users/binaryrishabh' },
-        { label: 'Codeforces', value: 500, display: '500+', note: 'problems solved', url: 'https://codeforces.com/profile/Rishabh_codes/' },
+        { label: 'LeetCode', value: 1655, towerWeight: 1700, display: '1655+', note: 'rating · 785 problems solved', url: 'https://leetcode.com/u/binaryrishabh/' },
+        { label: 'AtCoder', value: 1239, towerWeight: 1400, display: '1239+', note: 'rating', url: 'https://atcoder.jp/users/binaryrishabh' },
+        { label: 'Codeforces', value: 400, towerWeight: 500, display: '400+', note: 'problems solved', url: 'https://codeforces.com/profile/Rishabh_codes/' },
       ],
     },
     { kind: 'github', title: 'A year on GitHub', user: 'binaryrishabh' },
-    { kind: 'education', title: 'Education', school: 'Kalinga Institute of Industrial Technology (KIIT)', degree: 'Bachelor of Technology in Information Technology', period: 'Oct 2021 – Aug 2025', place: 'Bhubaneswar, India' },
+    { kind: 'education', title: 'Education', school: 'Kalinga Institute of Industrial Technology (KIIT)', degree: 'Bachelor of Technology in Information Technology', place: 'Bhubaneswar, India' },
     { kind: 'contact', title: 'Contact' },
   ] as Island[],
 };

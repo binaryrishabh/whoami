@@ -90,8 +90,41 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 22px; 
 .a-tag { margin: 10px 0 0; font: italic 400 clamp(17px, 1.4vw, 21px)/1.35 var(--serif); color: rgba(242, 237, 227, .92); text-shadow: 0 1px 14px rgba(var(--shade), .7); }
 
 /* ── the card for the island you are over ── */
-.panel { position: fixed; z-index: 20; right: var(--gutter); top: var(--gutter); width: min(430px, calc(100vw - 2 * var(--gutter))); max-height: calc(100vh - 2 * var(--gutter)); overflow: auto; background: var(--card); padding: 26px 28px 20px; border-radius: 4px; box-shadow: 0 24px 70px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .55s cubic-bezier(.22, 1, .36, 1); scrollbar-width: thin; scrollbar-color: #3a3d44 transparent; }
+.panel { position: fixed; z-index: 20; right: var(--gutter); top: var(--gutter); width: min(430px, calc(100vw - 2 * var(--gutter))); max-height: calc(100vh - 2 * var(--gutter)); overflow: auto; background: var(--card); padding: 26px 28px 20px; border-radius: 4px; box-shadow: 0 24px 70px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .55s cubic-bezier(.22, 1, .36, 1); }
 .panel.is-open { opacity: 1; transform: none; }
+/* A quiet rope rail and a brushed brass grip, echoing the bridges and island details. */
+.panel, .atlas { scrollbar-width: thin; scrollbar-color: #b8945e var(--card); }
+@supports selector(::-webkit-scrollbar) {
+  /* Let the detailed track and grip styles take precedence over the standard colour fallback. */
+  .panel, .atlas { scrollbar-width: auto; scrollbar-color: auto; }
+  .panel::-webkit-scrollbar, .atlas::-webkit-scrollbar { width: 10px; height: 10px; }
+  .panel::-webkit-scrollbar-track, .atlas::-webkit-scrollbar-track {
+    margin-block: 16px;
+    border: 4px solid transparent;
+    border-radius: 10px;
+    background: repeating-linear-gradient(35deg, #675137 0 2px, #42392d 2px 4px);
+    background-clip: padding-box;
+  }
+  .panel::-webkit-scrollbar-thumb, .atlas::-webkit-scrollbar-thumb {
+    min-height: 44px;
+    border: 2px solid var(--card);
+    border-radius: 10px;
+    background: linear-gradient(90deg, #8e6d43, #c5a36c 48%, #a78350);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 1px rgba(236, 202, 145, .16);
+  }
+  .panel::-webkit-scrollbar-thumb:hover, .atlas::-webkit-scrollbar-thumb:hover {
+    background-image: linear-gradient(90deg, #a7814d, #e0b470 48%, #b89158);
+  }
+  .panel::-webkit-scrollbar-thumb:active, .atlas::-webkit-scrollbar-thumb:active { background: var(--accent); background-clip: padding-box; }
+  .panel::-webkit-scrollbar-button, .atlas::-webkit-scrollbar-button { display: none; }
+  .panel::-webkit-scrollbar-corner, .atlas::-webkit-scrollbar-corner { background: transparent; }
+}
+@media (forced-colors: active) {
+  .panel, .atlas { scrollbar-color: auto; }
+  .panel::-webkit-scrollbar-track, .atlas::-webkit-scrollbar-track { background: Canvas; }
+  .panel::-webkit-scrollbar-thumb, .atlas::-webkit-scrollbar-thumb { background: CanvasText; border-color: Canvas; box-shadow: none; }
+}
 .p-count { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font: 600 11.5px/1 var(--text); letter-spacing: .28em; text-transform: uppercase; color: var(--soft); }
 .p-count b { color: var(--accent); font-weight: 600; }
 .p-count::after { content: ''; flex: 1; height: 1px; background: var(--line); }
