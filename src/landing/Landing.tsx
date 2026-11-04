@@ -59,12 +59,10 @@ function Nav() {
 
 /* ── hero ── */
 const DECOR = [
-  { name: 'cloud', size: 158, style: { left: '4%', top: 118 }, depth: 1.5, delay: 0.15, tilt: -4, says: ['it’s someone else’s computer', 'multi-AZ, obviously', 'scaling to zero…'] },
-  { name: 'key', size: 116, style: { left: '7%', top: 336 }, depth: 2.2, delay: 0.35, tilt: -14, says: ['JWT verified · 200', 'token rotated', 'OAuth handshake ok'] },
-  { name: 'envelope', size: 104, style: { left: '19%', top: 452 }, depth: 1.1, delay: 0.55, tilt: 8, says: ['POST /contact 201', 'delivered, at least once', 'idempotency key: ok'] },
+  { name: 'cloud', size: 168, style: { left: '5%', top: 150 }, depth: 1.5, delay: 0.15, tilt: -4, says: ['it’s someone else’s computer', 'multi-AZ, obviously', 'scaling to zero…'] },
   { name: 'lock', size: 98, style: { right: '7%', top: 112 }, depth: 1.8, delay: 0.25, tilt: 9, says: ['TLS 1.3 ✓', '401 · nice try', 'least privilege, always'] },
   { name: 'globe', size: 128, style: { right: '3.5%', top: 318 }, depth: 1.3, delay: 0.45, tilt: -6, says: ['edge hit · 12 ms', 'served from the nearest PoP', 'ap-south-1 says hi'] },
-  { name: 'container', size: 118, style: { right: '18%', top: 458 }, depth: 2, delay: 0.65, tilt: 7, says: ['docker compose up', 'image: 41 MB', 'it works on my machine'] },
+  { name: 'container', size: 116, style: { left: '9%', top: 430 }, depth: 2, delay: 0.65, tilt: 7, says: ['docker compose up', 'image: 41 MB', 'it works on my machine'] },
 ];
 
 function Hero() {
@@ -162,8 +160,25 @@ function Big({ value }: { value: string }) {
 }
 
 const LEVELS = [0, 1, 2, 3, 4];
+type Cal = { total: number; updated: string; days: { date: string; week: number; weekday: number; level: number; count: number }[] };
+/** the live calendar from /api/github; until it arrives (or if it can't), the snapshot saved at build time */
+function useGithub(user: string) {
+  const [data, setData] = useState<Cal & { live: boolean }>({ ...(github as Cal), live: false });
+  useEffect(() => {
+    let gone = false;
+    fetch(`/api/github?user=${encodeURIComponent(user)}`)
+      .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d: Cal) => { if (!gone && d.days?.length) setData({ ...d, live: true }); })
+      .catch(() => {});
+    return () => { gone = true; };
+  }, [user]);
+  return data;
+}
+
 function Calendar() {
-  const days = github.days as { date: string; week: number; weekday: number; level: number; count: number }[];
+  const user = of('github')[0]?.user ?? 'binaryrishabh';
+  const gh = useGithub(user);
+  const days = gh.days;
   const weeks = Math.max(...days.map(d => d.week)) + 1;
   const [tip, setTip] = useState<{ d: (typeof days)[number]; x: number; y: number } | null>(null);
   const months = useMemo(() => {
@@ -174,11 +189,10 @@ function Calendar() {
   }, [days]);
   const active = days.filter(d => d.count > 0).length;
   const busiest = days.reduce((a, d) => (d.count > a.count ? d : a), days[0]);
-  const user = of('github')[0]?.user ?? 'github';
   return (
     <div className="cal card" data-reveal>
       <div className="cal-head">
-        <div><p className="card-k">A year on GitHub</p><p className="cal-total"><b>{github.total}</b> contributions on <b>{active}</b> days</p></div>
+        <div><p className="card-k">A year on GitHub {gh.live && <span className="cal-live"><i />live</span>}</p><p className="cal-total"><b>{gh.total.toLocaleString('en-US')}</b> contributions on <b>{active}</b> days</p></div>
         <a href={`https://github.com/${user}`} {...ext} className="btn btn-line btn-sm">github.com/{user} <span aria-hidden="true">↗</span></a>
       </div>
       <div className="cal-scroll">

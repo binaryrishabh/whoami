@@ -104,7 +104,7 @@ export function InfraCanvas() {
     <div className="vis vis-canvas" ref={ref}>
       <svg viewBox="0 0 560 380" className="ifc" role="img" aria-label="An infrastructure diagram: adding a cache lowers latency and database load">
         <defs><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.3" className="ifc-dot" /></pattern></defs>
-        <rect width="560" height="380" fill="url(#dots)" />
+        
         {wires.map((d, i) => (
           <g key={`${run}-${i}`}>
             <path d={d} className={`ifc-wire${i === 4 ? ' is-new' : ''}`} />
