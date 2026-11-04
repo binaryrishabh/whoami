@@ -21,7 +21,8 @@ export type Island = { tagline?: string } & (
   | { kind: 'experience'; title: string; roles: { role: string; org: string; period: string; place: string; stack: string; url?: string; points: string[] }[] }
   /** `visual` picks the moving illustration on the portfolio page: 'blueprint', 'canvas' or 'diff'; anything else
    *  (or nothing) shows a little group of toys, chosen with `toys` (names of the files in public/toys) */
-  | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[]; visual?: 'blueprint' | 'canvas' | 'diff'; toys?: string[] }
+  | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[]; visual?: 'blueprint' | 'canvas' | 'diff'; toys?: string[];
+      /** order on the portfolio page (lower first); the world keeps the order of this list */ rank?: number }
   | { kind: 'skills'; title: string; groups: { name: string; items: string[]; toy?: string }[] }
   | { kind: 'stats'; title: string; items: { label: string; value: number; towerWeight?: number; display: string; note: string; url: string }[] }
   | { kind: 'github'; title: string; user: string }
@@ -84,7 +85,7 @@ export const site = {
       }],
     },
     {
-      kind: 'project', title: 'CAD Floor-Plan Door Detector', stack: 'Python, PyMuPDF, NumPy, Pillow', links: [], visual: 'blueprint',
+      kind: 'project', title: 'CAD Floor-Plan Door Detector', stack: 'Python, PyMuPDF, NumPy, Pillow', links: [], visual: 'blueprint', rank: 2,
       points: [
         'Built during a work trial with a US construction-tech startup to detect doors directly in CAD-exported vector PDFs, reading PyMuPDF drawing operators and the text layer with no OCR.',
         'Reconstructed door swings exported as 12–14 exploded line segments: chained segments by shared endpoints, fitted circles with least squares, checked quarter-circle spans and validated the door leaf from the fitted hinge, with thresholds normalised to drawing scale.',
@@ -92,7 +93,7 @@ export const site = {
       ],
     },
     {
-      kind: 'project', title: 'InfraForge', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Redis, Docker, AWS', visual: 'canvas',
+      kind: 'project', title: 'InfraForge', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Redis, Docker, AWS', visual: 'canvas', rank: 1,
       links: [{ label: 'Live', url: 'https://infraforge.lapwork.in/' }, { label: 'GitHub', url: 'https://github.com/binaryrishabh/InfraForge' }],
       points: [
         'Designed a React/dnd-kit canvas with drag-and-drop editing, Manhattan connection routing and undo/redo for modelling cloud infrastructure.',
@@ -102,7 +103,7 @@ export const site = {
       ],
     },
     {
-      kind: 'project', title: 'Allrecipes Tweaks', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Prisma, Gemini API', visual: 'diff',
+      kind: 'project', title: 'Allrecipes Tweaks', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Prisma, Gemini API', visual: 'diff', rank: 3,
       links: [{ label: 'Live', url: 'https://allrecipes.lapwork.in/' }, { label: 'GitHub', url: 'https://github.com/binaryrishabh/PlankRecipe' }],
       points: [
         'Engineered a recipe-analysis pipeline that retrieves up to 50 reviews per recipe, parses JSON-LD and uses parallel Gemini API calls to extract ingredient and instruction changes.',

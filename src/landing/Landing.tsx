@@ -99,13 +99,6 @@ function Hero() {
   );
 }
 
-/* ── a running strip of the toolbox ── */
-function Ticker() {
-  const items = of('skills').flatMap(s => s.groups.flatMap(g => g.items)).filter(i => i.length < 22);
-  const row = (k: string) => <div className="tick-row" aria-hidden={k === 'b'} key={k}>{items.map((t, i) => <span key={i}>{t}<img src={toySrc('packet')} alt="" /></span>)}</div>;
-  return <div className="tick" aria-label="Tools I use">{row('a')}{row('b')}</div>;
-}
-
 function SecHead({ n, k, title, lead }: { n: string; k: string; title: ReactNode; lead?: ReactNode }) {
   return (
     <div className="sec-head" data-reveal>
@@ -124,7 +117,8 @@ function Visual({ p }: { p: Of<'project'> }) {
   return <ToyGroup toys={p.toys ?? []} />;
 }
 function Work() {
-  const projects = of('project');
+  // `rank` sets the order on this page only (the world keeps the config order)
+  const projects = of('project').map((p, i) => ({ p, i })).sort((a, b) => (a.p.rank ?? 99) - (b.p.rank ?? 99) || a.i - b.i).map(x => x.p);
   return (
     <section className="sec" id="work">
       <SecHead n="01" k="Selected work" title={<>Things I’ve <em>built</em>, and how they work.</>} lead="Each one runs on its own below: a little moving sketch of what the code actually does." />
@@ -167,7 +161,7 @@ function Big({ value }: { value: string }) {
   return <span ref={ref}>{m ? `${m[1]}${n}${m[3]}` : value}</span>;
 }
 
-const LEVEL = ['#E2DBCD', '#F8C9AE', '#F59E73', '#EE6B37', '#C9420F'];
+const LEVELS = [0, 1, 2, 3, 4];
 function Calendar() {
   const days = github.days as { date: string; week: number; weekday: number; level: number; count: number }[];
   const weeks = Math.max(...days.map(d => d.week)) + 1;
@@ -191,14 +185,14 @@ function Calendar() {
         <div className="cal-grid" style={{ gridTemplateColumns: `repeat(${weeks}, minmax(0, 1fr))` }} onMouseLeave={() => setTip(null)}>
           {months.map(m => <span key={`${m.w}${m.m}`} className="cal-m" style={{ gridColumn: m.w + 1 }}>{m.m}</span>)}
           {days.map(d => (
-            <i key={d.date} style={{ gridColumn: d.week + 1, gridRow: d.weekday + 2, background: LEVEL[d.level] }}
+            <i key={d.date} className={`lv${d.level}`} style={{ gridColumn: d.week + 1, gridRow: d.weekday + 2 }}
               onMouseEnter={e => { const r = (e.target as HTMLElement).getBoundingClientRect(); setTip({ d, x: r.left + r.width / 2, y: r.top }); }} />
           ))}
         </div>
       </div>
       <div className="cal-foot">
         <span>Busiest day: {new Date(busiest.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}, {busiest.count} contributions</span>
-        <span className="cal-key">less {LEVEL.map(c => <i key={c} style={{ background: c }} />)} more</span>
+        <span className="cal-key">less {LEVELS.map(l => <i key={l} className={`lv${l}`} />)} more</span>
       </div>
       {tip && <p className="cal-tip" style={{ left: tip.x, top: tip.y }}>{tip.d.count || 'No'} contribution{tip.d.count === 1 ? '' : 's'} · {new Date(tip.d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>}
     </div>
@@ -358,7 +352,6 @@ export function Landing() {
       <Nav />
       <main>
         <Hero />
-        <Ticker />
         <Work />
         <About />
         <Experience />
