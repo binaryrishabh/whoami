@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { site, type Island } from '../site.config';
 import github from '../data/github.json';
 import { FloatToy, toySrc } from './Toy';
@@ -9,11 +9,6 @@ const WORLD = '/world/';
 const ext = { target: '_blank', rel: 'noopener' } as const;
 type Of<K extends Island['kind']> = Extract<Island, { kind: K }>;
 const of = <K extends Island['kind']>(k: K) => site.islands.filter(i => i.kind === k) as Of<K>[];
-
-/** *stars* become italics */
-function rich(text: string) {
-  return text.split(/(\*[^*]+\*)/).map((p, i) => (p.startsWith('*') ? <em key={i}>{p.slice(1, -1)}</em> : <Fragment key={i}>{p}</Fragment>));
-}
 
 /** adds .is-in to anything with data-reveal as it scrolls into view */
 function useReveal() {
@@ -58,12 +53,24 @@ function Nav() {
 }
 
 /* ── hero ── */
+/** toys orbit the copy, not the screen's edges, stepping down in a zig-zag: two near (sharp), two far (softer, slower parallax) */
 const DECOR = [
-  { name: 'cloud', size: 168, style: { left: '5%', top: 150 }, depth: 1.5, delay: 0.15, tilt: -4, says: ['it’s someone else’s computer', 'multi-AZ, obviously', 'scaling to zero…'] },
-  { name: 'lock', size: 98, style: { right: '7%', top: 112 }, depth: 1.8, delay: 0.25, tilt: 9, says: ['TLS 1.3 ✓', '401 · nice try', 'least privilege, always'] },
-  { name: 'globe', size: 128, style: { right: '3.5%', top: 318 }, depth: 1.3, delay: 0.45, tilt: -6, says: ['edge hit · 12 ms', 'served from the nearest PoP', 'ap-south-1 says hi'] },
-  { name: 'container', size: 116, style: { left: '9%', top: 430 }, depth: 2, delay: 0.65, tilt: 7, says: ['docker compose up', 'image: 41 MB', 'it works on my machine'] },
+  { name: 'cloud', size: 168, style: { left: '0%', top: '0%' }, depth: 0.7, delay: 0.5, tilt: -4, far: true, says: ['it’s someone else’s computer', 'multi-AZ, obviously', 'scaling to zero…'] },
+  { name: 'lock', size: 98, style: { right: '6%', top: '24%' }, depth: 1.8, delay: 0.65, tilt: 9, says: ['TLS 1.3 ✓', '401 · nice try', 'least privilege, always'] },
+  { name: 'globe', size: 136, style: { right: '0%', top: '74%' }, depth: 0.8, delay: 0.85, tilt: -6, far: true, says: ['edge hit · 12 ms', 'served from the nearest PoP', 'ap-south-1 says hi'] },
+  { name: 'container', size: 108, style: { left: '7%', top: '54%' }, depth: 2, delay: 1.0, tilt: 7, says: ['docker compose up', 'image: 41 MB', 'it works on my machine'] },
 ];
+
+/** the headline, one masked word at a time; *stars* still become italics */
+function headlineWords(text: string) {
+  let n = 0;
+  return text.split(/(\*[^*]+\*)/).filter(Boolean).flatMap((seg, si) => {
+    const italic = seg.startsWith('*');
+    return (italic ? seg.slice(1, -1) : seg).split(/(\s+)/).filter(Boolean).map((w, wi) => (/^\s+$/.test(w) ? ' ' : (
+      <span className="w" key={`${si}-${wi}`}><span style={{ '--i': n++ } as CSSProperties}>{italic ? <em>{w}</em> : w}</span></span>
+    )));
+  });
+}
 
 function Hero() {
   const ref = useRef<HTMLElement>(null);
@@ -79,21 +86,28 @@ function Hero() {
   }, []);
   const [first] = site.location.split(' · ');
   return (
-    <section className="hero" id="top" ref={ref}>
-      <div className="hero-decor" aria-label="Toys from a server room: pick them up, or click them">
-        {DECOR.map(d => <FloatToy key={d.name} {...d} alt={`A toy ${d.name}`} />)}
-      </div>
-      <div className="hero-copy">
-        <p className="hero-k"><span className="dot" />{site.role} · {first}</p>
-        <h1 className="hero-h">{rich(site.page.headline)}</h1>
-        <p className="hero-intro">{site.page.intro}</p>
-        <div className="hero-cta">
-          <a className="btn btn-dark" href={WORLD}><Mark className="btn-mark" />Enter the 3D world</a>
-          <a className="btn btn-line" href="#work">See my work <span aria-hidden="true">↓</span></a>
+    <>
+      <section className="hero" id="top" ref={ref}>
+        <div className="hero-stage">
+          <div className="hero-decor" aria-label="Toys from a server room: pick them up, or click them">
+            {DECOR.map(d => <FloatToy key={d.name} {...d} alt={`A toy ${d.name}`} />)}
+          </div>
+          <div className="hero-copy">
+            <p className="hero-k"><span className="dot" />{site.role} · {first}</p>
+            <h1 className="hero-h" aria-label={site.page.headline.replace(/\*/g, '')}><span aria-hidden="true">{headlineWords(site.page.headline)}</span></h1>
+            <p className="hero-intro">{site.page.intro}</p>
+            <div className="hero-cta">
+              <a className="btn btn-dark" href={WORLD}><Mark className="btn-mark" />Enter the 3D world</a>
+              <a className="btn btn-line" href="#work">See my work <span aria-hidden="true">↓</span></a>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="hero-sys" data-reveal><System /></div>
-    </section>
+        <a className="hero-cue" href="#live"><span>a live system is running below</span><i aria-hidden="true" /></a>
+      </section>
+      <section className="live" id="live" aria-label="A small system running in your browser">
+        <div className="hero-sys" data-reveal><System /></div>
+      </section>
+    </>
   );
 }
 

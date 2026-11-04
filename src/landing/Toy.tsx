@@ -9,8 +9,10 @@ const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-
  * A toy floating on the page. It bobs, drifts a little with the mouse (by `depth`), can be picked up and
  * thrown (it springs home), and when clicked it squashes and says one of its lines.
  */
-export function FloatToy({ name, size, style, depth = 1, delay = 0, tilt = 0, says = [], alt = '' }: {
+export function FloatToy({ name, size, style, depth = 1, delay = 0, tilt = 0, says = [], alt = '', far = false }: {
   name: string; size: number; style: CSSProperties; depth?: number; delay?: number; tilt?: number; says?: string[]; alt?: string;
+  /** further from the camera: smaller in parallax, slightly out of focus */
+  far?: boolean;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [bubble, setBubble] = useState<{ text: string; key: number } | null>(null);
@@ -62,8 +64,8 @@ export function FloatToy({ name, size, style, depth = 1, delay = 0, tilt = 0, sa
   return (
     <div
       ref={wrap} className="ftoy" role="button" tabIndex={0} aria-label={alt || name}
-      data-name={name}
-      style={{ ...style, width: size, '--depth': depth, '--delay': `${delay}s`, '--tilt': `${tilt}deg` } as CSSProperties}
+      data-name={name} data-far={far || undefined}
+      style={{ ...style, '--w': `${size}px`, '--depth': depth, '--delay': `${delay}s`, '--tilt': `${tilt}deg` } as CSSProperties}
     >
       <div className="ftoy-par">
         <div className="ftoy-bob" style={reduced() ? { animation: 'none' } : undefined}>
