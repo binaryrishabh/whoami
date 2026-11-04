@@ -10,6 +10,4 @@ import '@fontsource/jetbrains-mono/500.css';
 import './landing.css';
 import { Landing } from './Landing';
 
-if (import.meta.env.DEV) { const pal = new URLSearchParams(location.search).get('pal'); if (pal) document.documentElement.dataset.pal = pal; }
-
 createRoot(document.getElementById('root')!).render(<><Landing /><Analytics /></>);
