@@ -1,5 +1,7 @@
 /**
- * Everything the world says lives here. Each island is generated from one entry: add, remove,
+ * Everything the portfolio says lives here: the page at / and the 3D world at /world/ both read it.
+ *
+ * The world: each island is generated from one entry. Each island is generated from one entry: add, remove,
  * reorder or rename islands freely and the world rearranges itself. Island kinds:
  *
  *   'about'      the island you start on: your name in big letters
@@ -17,8 +19,10 @@ export type Link = { label: string; url: string };
 export type Island = { tagline?: string } & (
   | { kind: 'about'; title: string }
   | { kind: 'experience'; title: string; roles: { role: string; org: string; period: string; place: string; stack: string; url?: string; points: string[] }[] }
-  | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[] }
-  | { kind: 'skills'; title: string; groups: { name: string; items: string[] }[] }
+  /** `visual` picks the moving illustration on the portfolio page: 'blueprint', 'canvas' or 'diff'; anything else
+   *  (or nothing) shows a little group of toys, chosen with `toys` (names of the files in public/toys) */
+  | { kind: 'project'; title: string; stack: string; links: Link[]; points: string[]; visual?: 'blueprint' | 'canvas' | 'diff'; toys?: string[] }
+  | { kind: 'skills'; title: string; groups: { name: string; items: string[]; toy?: string }[] }
   | { kind: 'stats'; title: string; items: { label: string; value: number; towerWeight?: number; display: string; note: string; url: string }[] }
   | { kind: 'github'; title: string; user: string }
   | { kind: 'education'; title: string; school: string; degree: string; period?: string; place: string }
@@ -42,6 +46,21 @@ export const site = {
     'Fly close to a waterfall and you will hear it.',
     'The quickest way to reach me is email. You will find it at the lighthouse.',
   ],
+  /** the portfolio page. Wrap words in *stars* to set them in italics. */
+  page: {
+    headline: 'I build systems that *stay up.*',
+    intro: 'Hi, I’m Rishabh, a full-stack engineer. I ship production apps, LLM-powered pipelines and the backends underneath them, and I care about the milliseconds in between.',
+    about: [
+      'I like the parts of software nobody sees: the queue that doesn’t drop a message, the query that came down from 150 ms to 20, the app that opens before you notice it opening.',
+      'Most of my work sits where the backend meets the interface. I design the data layer, the pipeline and the screen on top of it, and I measure everything twice.',
+    ],
+    /** big numbers in the about section */
+    highlights: [
+      { value: '65%', label: 'faster app start-up', note: '3.4 s → 1.2 s, by code splitting and lazy loading' },
+      { value: '87%', label: 'lower query latency', note: '150 ms → 20 ms in SQLite, with prepared statements' },
+      { value: '95', label: 'doors, from 168 detections', note: 'reconciled across a full CAD plan set in about 23 s' },
+    ],
+  },
   email: 'srivastavarishabh2001@gmail.com',
   links: [
     { label: 'GitHub', url: 'https://github.com/binaryrishabh' },
@@ -65,7 +84,7 @@ export const site = {
       }],
     },
     {
-      kind: 'project', title: 'CAD Floor-Plan Door Detector', stack: 'Python, PyMuPDF, NumPy, Pillow', links: [],
+      kind: 'project', title: 'CAD Floor-Plan Door Detector', stack: 'Python, PyMuPDF, NumPy, Pillow', links: [], visual: 'blueprint',
       points: [
         'Built during a work trial with a US construction-tech startup to detect doors directly in CAD-exported vector PDFs, reading PyMuPDF drawing operators and the text layer with no OCR.',
         'Reconstructed door swings exported as 12–14 exploded line segments: chained segments by shared endpoints, fitted circles with least squares, checked quarter-circle spans and validated the door leaf from the fitted hinge, with thresholds normalised to drawing scale.',
@@ -73,7 +92,7 @@ export const site = {
       ],
     },
     {
-      kind: 'project', title: 'InfraForge', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Redis, Docker, AWS',
+      kind: 'project', title: 'InfraForge', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Redis, Docker, AWS', visual: 'canvas',
       links: [{ label: 'Live', url: 'https://infraforge.lapwork.in/' }, { label: 'GitHub', url: 'https://github.com/binaryrishabh/InfraForge' }],
       points: [
         'Designed a React/dnd-kit canvas with drag-and-drop editing, Manhattan connection routing and undo/redo for modelling cloud infrastructure.',
@@ -83,7 +102,7 @@ export const site = {
       ],
     },
     {
-      kind: 'project', title: 'Allrecipes Tweaks', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Prisma, Gemini API',
+      kind: 'project', title: 'Allrecipes Tweaks', stack: 'React, TypeScript, Bun, Express, PostgreSQL, Prisma, Gemini API', visual: 'diff',
       links: [{ label: 'Live', url: 'https://allrecipes.lapwork.in/' }, { label: 'GitHub', url: 'https://github.com/binaryrishabh/PlankRecipe' }],
       points: [
         'Engineered a recipe-analysis pipeline that retrieves up to 50 reviews per recipe, parses JSON-LD and uses parallel Gemini API calls to extract ingredient and instruction changes.',
@@ -94,13 +113,13 @@ export const site = {
     {
       kind: 'skills', title: 'Skills',
       groups: [
-        { name: 'Languages', items: ['TypeScript', 'JavaScript', 'Python', 'SQL', 'C++', 'Java', 'Rust'] },
-        { name: 'Backend', items: ['Node.js', 'Bun', 'Express', 'REST APIs', 'WebSockets', 'BullMQ', 'Zod', 'Prisma', 'Gemini API', 'JWT', 'OAuth', 'NextAuth'] },
-        { name: 'Frontend', items: ['React', 'Next.js', 'Electron', 'Tailwind CSS', 'Zustand', 'Vite', 'HTML/CSS'] },
-        { name: 'Databases', items: ['PostgreSQL', 'SQLite', 'Redis'] },
-        { name: 'Cloud / DevOps', items: ['AWS EC2', 'Docker', 'Linux', 'Nginx', 'Git', 'GitHub Actions', 'CI/CD', 'Vercel', 'Cloudflare R2'] },
-        { name: 'PDF / Geometry', items: ['PyMuPDF (vector PDF parsing)', 'NumPy', 'Pillow'] },
-        { name: 'Engineering', items: ['Distributed systems', 'Asynchronous processing', 'Caching', 'Performance optimisation'] },
+        { name: 'Languages', toy: 'terminal', items: ['TypeScript', 'JavaScript', 'Python', 'SQL', 'C++', 'Java', 'Rust'] },
+        { name: 'Backend', toy: 'server', items: ['Node.js', 'Bun', 'Express', 'REST APIs', 'WebSockets', 'BullMQ', 'Zod', 'Prisma', 'Gemini API', 'JWT', 'OAuth', 'NextAuth'] },
+        { name: 'Frontend', toy: 'phone', items: ['React', 'Next.js', 'Electron', 'Tailwind CSS', 'Zustand', 'Vite', 'HTML/CSS'] },
+        { name: 'Databases', toy: 'database', items: ['PostgreSQL', 'SQLite', 'Redis'] },
+        { name: 'Cloud / DevOps', toy: 'cloud', items: ['AWS EC2', 'Docker', 'Linux', 'Nginx', 'Git', 'GitHub Actions', 'CI/CD', 'Vercel', 'Cloudflare R2'] },
+        { name: 'PDF / Geometry', toy: 'chip', items: ['PyMuPDF (vector PDF parsing)', 'NumPy', 'Pillow'] },
+        { name: 'Engineering', toy: 'gear', items: ['Distributed systems', 'Asynchronous processing', 'Caching', 'Performance optimisation'] },
       ],
     },
     {

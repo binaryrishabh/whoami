@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from '/three/build/three.module.js';
+import { RoomEnvironment } from '/three/examples/jsm/environments/RoomEnvironment.js';
+import { TOYS, build } from './sdf.js';
+
+const SIZE = 1100;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(SIZE, SIZE);
+renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.5;
+const LIGHT = new THREE.Vector3(-0.55, 0.85, 0.6).normalize();
+const key = new THREE.DirectionalLight(0xfff0dc, 3.0); key.position.copy(LIGHT).multiplyScalar(10); scene.add(key);
+const rim = new THREE.DirectionalLight(0xdfe8ff, 0.7); rim.position.set(4, 3, -6); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xcdbfa6, 0.3));
+
+// vinyl-toy materials: soft satin plastic with a gentle clearcoat; the colour itself lives in the vertex colours
+const HEX = { cream: '#eee4d2', cloud: '#eef1f4', ink: '#2a2d34', orange: '#f0531f', butter: '#f4b92c', sage: '#76ad94', sky: '#86b6e3', silver: '#c4c8cf', ledG: '#46e08c', ledO: '#ff7a33' };
+const PAL = Object.fromEntries(Object.entries(HEX).map(([k, v]) => { const c = new THREE.Color(v); return [k, [c.r, c.g, c.b]]; }));
+const P = (o = {}) => new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.46, clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.2, sheenRoughness: 0.6, sheenColor: 0xffffff, vertexColors: true, ...o });
+const MATS = {
+  cream: P(), cloud: P({ roughness: 0.6, clearcoat: 0.25, sheen: 0.5 }), ink: P({ roughness: 0.34, clearcoat: 0.8 }), orange: P(), butter: P(), sage: P(), sky: P(),
+  silver: P({ metalness: 0.8, roughness: 0.26 }),
+  ledG: P({ emissive: HEX.ledG, emissiveIntensity: 2.4, roughness: 0.2 }), ledO: P({ emissive: HEX.ledO, emissiveIntensity: 2.4, roughness: 0.2 }),
+};
+const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 100);
+const VIEW = new THREE.Vector3(0, 0.42, 1).normalize();
+
+window.TOYS = Object.keys(TOYS);
+window.renderToy = (name, N = 170) => {
+  const toy = TOYS[name];
+  const group = new THREE.Group();
+  group.rotation.set(...toy.pose);
+  group.updateMatrixWorld();
+  const inv = group.quaternion.clone().invert();
+  const lightLocal = LIGHT.clone().applyQuaternion(inv);
+  const t0 = performance.now();
+  const { groups, tris } = build(toy, N, [lightLocal.x, lightLocal.y, lightLocal.z], PAL);
+  for (const [m, g] of Object.entries(groups)) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(g.position, 3));
+    geo.setAttribute('normal', new THREE.Float32BufferAttribute(g.normal, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(g.color, 3));
+    group.add(new THREE.Mesh(geo, MATS[m] || MATS.cream));
+  }
+  scene.add(group);
+  const box = new THREE.Box3().setFromObject(group), sph = box.getBoundingSphere(new THREE.Sphere());
+  const dist = (sph.radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.02;
+  camera.position.copy(sph.center).addScaledVector(VIEW, dist);
+  camera.lookAt(sph.center);
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  scene.remove(group);
+  group.traverse(o => o.geometry && o.geometry.dispose());
+  return { url, tris, ms: Math.round(performance.now() - t0) };
+};
+window.ready = true;
+</script>
+</body></html>

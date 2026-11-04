@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 import { site } from './src/site.config';
 
@@ -24,5 +25,6 @@ export default defineConfig({
   plugins: [react(), loadingWords()],
   server: { port: 5510, strictPort: true },
   preview: { port: 5520, strictPort: true },
-  build: { target: 'es2022', chunkSizeWarningLimit: 1600 },
+  // two pages: the portfolio at /, and the 3D world at /world/
+  build: { target: 'es2022', chunkSizeWarningLimit: 1600, rollupOptions: { input: { main: resolve(__dirname, 'index.html'), world: resolve(__dirname, 'world/index.html') } } },
 });

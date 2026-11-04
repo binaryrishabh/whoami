@@ -126,6 +126,7 @@ export function RoomScreen({ size }: { size: { w: number; h: number } }) {
         <p className="room-size"><span>This window</span> {size.w} × {size.h} <span>· needs</span> {MIN_W} × {MIN_H}</p>
         <Rope className="room-rope" />
         <p className="room-meanwhile">Meanwhile</p>
+        <p className="room-links room-links-main"><a href="/">Open the portfolio page →</a></p>
         <p className="room-links">
           <a href={mail}>{site.email}</a>
           {site.links.map(l => <a key={l.url} href={l.url} target="_blank" rel="noopener">{l.label} ↗</a>)}

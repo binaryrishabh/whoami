@@ -261,3 +261,4 @@ html:has(.nogl), body:has(.nogl) { overflow: auto; }
 @media (prefers-reduced-motion: reduce) {
   .t-word span, .t-mark path, .a-rule span, .room-art, .room-frame i, .room-frame b, .t-begin { animation: none !important; opacity: 1; transform: none; filter: none; stroke-dashoffset: 0; }
 }
+a.chip { text-decoration: none; }

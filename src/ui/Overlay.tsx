@@ -133,6 +133,7 @@ export function Overlay() {
     <>
       {loaded && (
         <nav className="bar" aria-label="World">
+          <a className="chip" href="/">← Portfolio</a>
           <button className={`chip${overview ? ' is-on' : ''}`} onClick={() => { sound.tap(0.3); set({ overview: !overview, started: true }); }} aria-pressed={overview}><kbd>M</kbd>Map</button>
           <button className="chip" onClick={toggleSound} aria-pressed={soundOn}>{soundOn ? 'Sound on' : 'Sound off'}</button>
         </nav>

@@ -1,4 +1,13 @@
-# Portfolio · floating islands
+# Portfolio
+
+Two ways in, one config:
+
+- **`/`, the portfolio page.** Warm paper, an editorial serif, and toys from a server room. Its hero is a small distributed system running live in the browser: click a server to kill it and watch the load balancer route around it. It works on phones.
+- **`/world/`, the 3D world.** Floating islands above a sea of cloud, one for each part of the portfolio, explored with a camera drone. Best on a laptop or desktop.
+
+Both read `src/site.config.ts`. The page also uses its `page` block (headline, intro, about, the big numbers), and each project's `visual` picks its moving illustration (`blueprint`, `canvas`, `diff`, or a few toys chosen with `toys`). The toys themselves are made in `tools/toys` (see its README).
+
+## The 3D world
 
 A small world of floating islands above a sea of cloud, one island per part of the portfolio, explored with a camera drone. Built with React Three Fiber.
 
