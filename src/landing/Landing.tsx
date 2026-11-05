@@ -46,7 +46,7 @@ function Nav() {
       <nav className="nav-links" aria-label="Sections">
         {SECTIONS.map(([id, label]) => <a key={id} href={`#${id}`} className={here === id ? 'is-here' : ''} onClick={() => setOpen(false)}>{label}</a>)}
       </nav>
-      <a className="nav-world" href={WORLD}><span className="nav-world-dot" /><span className="nw-long">Enter the </span>3D world<span aria-hidden="true">↗</span></a>
+      <a className="nav-world" href={WORLD}><span className="nav-world-dot" /><span><span className="nw-long">Enter the </span>3D world</span><span aria-hidden="true">↗</span></a>
       <button className="nav-menu" aria-expanded={open} aria-label="Menu" onClick={() => setOpen(o => !o)}><i /><i /></button>
     </header>
   );

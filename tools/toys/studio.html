@@ -25,7 +25,7 @@ const rim = new THREE.DirectionalLight(0xdfe8ff, 0.7); rim.position.set(4, 3, -6
 scene.add(new THREE.HemisphereLight(0xffffff, 0xcdbfa6, 0.3));
 
 // vinyl-toy materials: soft satin plastic with a gentle clearcoat; the colour itself lives in the vertex colours
-const HEX = { cream: '#e9edf0', cloud: '#f3f6f8', ink: '#2a2e36', orange: '#f0531f', butter: '#f2b43a', sage: '#7aa99c', sky: '#8eb4dc', silver: '#c2c8d0', ledG: '#46e08c', ledO: '#ff7a33' };
+const HEX = { cream: '#f1e9da', cloud: '#f8f5ee', ink: '#2a2621', orange: '#f0571f', butter: '#f4b83a', sage: '#7fb39b', sky: '#86aee8', silver: '#cdc6b9', ledG: '#46e08c', ledO: '#ff7a33' };
 const PAL = Object.fromEntries(Object.entries(HEX).map(([k, v]) => { const c = new THREE.Color(v); return [k, [c.r, c.g, c.b]]; }));
 const P = (o = {}) => new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.46, clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.2, sheenRoughness: 0.6, sheenColor: 0xffffff, vertexColors: true, ...o });
 const MATS = {
