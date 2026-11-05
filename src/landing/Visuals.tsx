@@ -75,56 +75,98 @@ export function Blueprint() {
   );
 }
 
-/* ── InfraForge: a canvas of infrastructure; a cache is dropped in and the simulation answers ── */
-type N = { id: string; toy: string; x: number; y: number; s: number; label: string };
-const BASE: N[] = [
-  { id: 'lb', toy: 'router', x: 86, y: 196, s: 74, label: 'alb' },
-  { id: 'a', toy: 'server', x: 250, y: 112, s: 64, label: 'api-a' },
-  { id: 'b', toy: 'server', x: 250, y: 280, s: 64, label: 'api-b' },
-  { id: 'db', toy: 'database', x: 430, y: 280, s: 66, label: 'rds' },
+/* ── InfraForge: a miniature of the editor. A cache is dragged in from the palette and the simulation answers ── */
+type Card = { id: string; toy: string; x: number; y: number; name: string; kind: string };
+const CW = 138, CH = 50;            // card size
+const CARDS: Card[] = [
+  { id: 'alb', toy: 'router', x: 214, y: 196, name: 'alb', kind: 'load balancer' },
+  { id: 'a', toy: 'server', x: 390, y: 126, name: 'api-a', kind: 'ec2 · t3.small' },
+  { id: 'b', toy: 'server', x: 390, y: 266, name: 'api-b', kind: 'ec2 · t3.small' },
+  { id: 'db', toy: 'database', x: 560, y: 266, name: 'rds', kind: 'postgres' },
 ];
-const CACHE: N = { id: 'c', toy: 'cache', x: 430, y: 104, s: 56, label: 'redis' };
-const wire = (a: N, b: N) => { const x0 = a.x + a.s * 0.45, x1 = b.x - b.s * 0.45, m = (x0 + x1) / 2; return `M${x0},${a.y} H${m - 10} Q${m},${a.y} ${m},${a.y + Math.sign(b.y - a.y) * 10} V${b.y - Math.sign(b.y - a.y) * 10} Q${m},${b.y} ${m + 10},${b.y} H${x1}`; };
-const straight = (a: N, b: N) => `M${a.x + a.s * 0.45},${a.y} H${b.x - b.s * 0.45}`;
+const REDIS: Card = { id: 'c', toy: 'cache', x: 560, y: 126, name: 'redis', kind: 'cache · 1 GB' };
+const PALETTE = [['router', 'Load balancer'], ['server', 'Server'], ['cache', 'Cache'], ['database', 'Database'], ['queue', 'Queue']] as const;
+const PAL_Y = (i: number) => 92 + i * 44;
+/** an orthogonal wire from the right edge of one card to the left edge of another, corners rounded */
+function link(a: Card, b: Card, shift = 0) {
+  const x0 = a.x + CW / 2, x1 = b.x - CW / 2, y0 = a.y, y1 = b.y, m = Math.round((x0 + x1) / 2) + shift, r = 10;
+  if (y0 === y1) return `M${x0},${y0} H${x1}`;
+  const s = Math.sign(y1 - y0);
+  return `M${x0},${y0} H${m - r} Q${m},${y0} ${m},${y0 + s * r} V${y1 - s * r} Q${m},${y1} ${m + r},${y1} H${x1}`;
+}
+const [ALB, A, B, DB] = CARDS;
+const BASE_LINKS = [link(ALB, A), link(ALB, B), link(A, DB, -7), link(B, DB)];
+
+function CardG({ c, cls = '' }: { c: Card; cls?: string }) {
+  return (
+    <g className={`ifc-card ${cls}`} transform={`translate(${c.x - CW / 2},${c.y - CH / 2})`}>
+      <rect width={CW} height={CH} rx="11" />
+      <rect className="ifc-ico" x="7" y="7" width="36" height="36" rx="8" />
+      <image href={toySrc(c.toy)} x="10" y="10" width="30" height="30" />
+      <text x="51" y="22" className="ifc-name">{c.name}</text>
+      <text x="51" y="36" className="ifc-kind">{c.kind}</text>
+      <circle cx="0" cy={CH / 2} r="3.5" className="ifc-port" /><circle cx={CW} cy={CH / 2} r="3.5" className="ifc-port" />
+    </g>
+  );
+}
 
 export function InfraCanvas() {
   const ref = useRef<HTMLDivElement>(null);
-  const run = useLoop(ref, 9500);
-  const [phase, setPhase] = useState(0); // 0 base, 1 cursor moving, 2 cache placed
+  const run = useLoop(ref, 9000);
+  const [phase, setPhase] = useState(0); // 0 as built, 1 dragging a cache in, 2 placed and simulated
   useEffect(() => {
     if (!run) return;
     setPhase(0);
-    const a = window.setTimeout(() => setPhase(1), 1400), b = window.setTimeout(() => setPhase(2), 3300);
+    const a = window.setTimeout(() => setPhase(1), 1500), b = window.setTimeout(() => setPhase(2), 3400);
     return () => { clearTimeout(a); clearTimeout(b); };
   }, [run]);
-  const [lb, a, b, db] = BASE;
-  const wires = [wire(lb, a), wire(lb, b), wire(a, db), straight(b, db), ...(phase === 2 ? [straight(a, CACHE)] : [])];
-  const rows = phase === 2 ? [['cost / month', '$214'], ['p99 latency', '31 ms'], ['db load', '38%']] : [['cost / month', '$186'], ['p99 latency', '84 ms'], ['db load', '81%']];
+  const placed = phase === 2;
+  const links = placed ? [...BASE_LINKS, link(A, REDIS), link(B, REDIS, 7)] : BASE_LINKS;
+  const stats = placed ? [['Cost', '$214/mo'], ['p99', '31 ms'], ['DB load', '38%']] : [['Cost', '$186/mo'], ['p99', '84 ms'], ['DB load', '81%']];
   return (
     <div className="vis vis-canvas" ref={ref}>
-      <svg viewBox="0 0 560 380" className="ifc" role="img" aria-label="An infrastructure diagram: adding a cache lowers latency and database load">
-        <defs><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.3" className="ifc-dot" /></pattern></defs>
-        
-        {wires.map((d, i) => (
+      <svg viewBox="0 0 640 420" className="ifc" role="img" aria-label="The InfraForge editor: adding a cache lowers latency and database load">
+        <defs><pattern id="ifc-dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" className="ifc-dot" /></pattern></defs>
+        {/* app bar */}
+        <rect x="0" y="0" width="640" height="40" className="ifc-bar" />
+        {[16, 30, 44].map(x => <circle key={x} cx={x} cy="20" r="4.5" className="ifc-win" />)}
+        <text x="66" y="24.5" className="ifc-title">infraforge</text>
+        <text x="146" y="24.5" className="ifc-crumb">/ checkout-service</text>
+        <g className={`ifc-run${placed ? ' is-on' : ''}`} transform="translate(540,9)"><rect width="88" height="22" rx="11" /><text x="44" y="15">{placed ? '● simulating' : '▶ Simulate'}</text></g>
+        {/* palette */}
+        <rect x="0" y="40" width="132" height="340" className="ifc-pal" />
+        <text x="16" y="66" className="ifc-pal-k">COMPONENTS</text>
+        {PALETTE.map(([toy, name], i) => (
+          <g key={toy} className={`ifc-pal-item${toy === 'cache' && phase === 1 ? ' is-picked' : ''}`} transform={`translate(10,${PAL_Y(i) - 17})`}>
+            <rect width="112" height="34" rx="9" />
+            <image href={toySrc(toy)} x="7" y="5" width="24" height="24" />
+            <text x="38" y="21">{name}</text>
+          </g>
+        ))}
+        {/* canvas */}
+        <rect x="132" y="40" width="508" height="340" fill="url(#ifc-dots)" />
+        {links.map((d, i) => (
           <g key={`${run}-${i}`}>
-            <path d={d} className={`ifc-wire${i === 4 ? ' is-new' : ''}`} />
-            <circle r="4" className="ifc-pkt"><animateMotion dur={`${1.9 + (i % 3) * 0.35}s`} begin={`${i * 0.37}s`} repeatCount="indefinite" path={d} /></circle>
+            <path d={d} className={`ifc-wire${i >= 4 ? ' is-new' : ''}`} />
+            <circle r="3.2" className="ifc-pkt"><animateMotion dur={`${1.8 + (i % 3) * 0.3}s`} begin={`${i * 0.3}s`} repeatCount="indefinite" path={d} /></circle>
           </g>
         ))}
-        {[...BASE, ...(phase === 2 ? [CACHE] : [])].map(n => (
-          <g key={n.id} className={`ifc-node${n.id === 'c' ? ' is-new' : ''}`} style={{ transformOrigin: `${n.x}px ${n.y}px` }}>
-            <image href={toySrc(n.toy)} x={n.x - n.s / 2} y={n.y - n.s / 2} width={n.s} height={n.s} />
-            <text x={n.x} y={n.y + n.s / 2 + 14} className="ifc-label">{n.label}</text>
+        {CARDS.map(c => <CardG key={c.id} c={c} cls={c.id === 'db' && !placed ? 'is-hot' : ''} />)}
+        {placed && <CardG c={REDIS} cls="is-new" />}
+        {phase === 1 && <g className="ifc-drag"><CardG c={REDIS} cls="is-ghost" /></g>}
+        {phase === 1 && <path className="ifc-cursor" d="M0,0 L0,17 L4.6,12.8 L7.8,19.8 L10.6,18.5 L7.5,11.7 L13.5,11.7 Z" />}
+        {!placed && <g className="ifc-flag" transform={`translate(${DB.x - 52},${DB.y + CH / 2 + 12})`}><rect width="104" height="20" rx="10" /><text x="52" y="14">bottleneck · 81%</text></g>}
+        {/* status bar */}
+        <rect x="0" y="380" width="640" height="40" className="ifc-bar" />
+        <text x="16" y="405" className="ifc-k">SIMULATION · 1 Hz</text>
+        {stats.map(([k, val], i) => (
+          <g key={k} transform={`translate(${152 + i * 112},405)`}>
+            <text className="ifc-k">{k.toUpperCase()}</text>
+            <text x={k === 'DB load' ? 58 : k === 'p99' ? 30 : 38} className={`ifc-v${placed ? ' is-good' : ''}`} key={val}>{val}</text>
           </g>
         ))}
-        {phase === 1 && <g className="ifc-ghost"><image href={toySrc('cache')} x={CACHE.x - 26} y={CACHE.y - 26} width="52" height="52" /></g>}
-        <path className={`ifc-cursor${phase >= 1 ? ' is-go' : ''}`} key={`c${run}`} d="M0,0 L0,18 L5,13.5 L8.5,21 L11.5,19.6 L8.2,12.4 L14.4,12.4 Z" />
+        <g className={`ifc-chip${placed ? ' is-good' : ''}`} transform="translate(492,391)"><rect width="136" height="20" rx="10" /><text x="68" y="14">{placed ? '5 nodes · in budget' : 'db is the bottleneck'}</text></g>
       </svg>
-      <div className="ifc-panel">
-        <p className="ifc-k">simulation · 1 Hz</p>
-        {rows.map(([k, v]) => <p key={k} className="ifc-row"><span>{k}</span><b key={v}>{v}</b></p>)}
-        <p className={`ifc-status${phase === 2 ? ' is-good' : ''}`}>{phase === 2 ? '5 nodes · within budget' : '4 nodes · db is the bottleneck'}</p>
-      </div>
     </div>
   );
 }
