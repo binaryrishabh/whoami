@@ -47,20 +47,22 @@ export const site = {
     'Fly close to a waterfall and you will hear it.',
     'The quickest way to reach me is email. You will find it at the lighthouse.',
   ],
-  /** the portfolio page. Wrap words in *stars* to set them in italics. */
+  /** the portfolio page. Wrap words in *stars* to colour them; ' / ' starts a new line. */
   page: {
-    headline: 'I build systems that *stay up.*',
-    intro: 'Hi, I’m Rishabh, a full-stack engineer. I ship production apps, LLM-powered pipelines and the backends underneath them, and I care about the milliseconds in between.',
+    headline: 'I make slow / software *fast.*',
+    intro: 'Backends, LLM pipelines and the apps on top of them. TypeScript, Bun, PostgreSQL, Redis. I measure first, then I fix it.',
+    /** the before → after cards beside the headline */
+    proofs: [
+      { label: 'App start-up', from: '3.4 s', to: '1.2 s', toy: 'terminal' },
+      { label: 'SQLite query', from: '150 ms', to: '20 ms', toy: 'database' },
+      { label: 'Doors, counted once', from: '168', to: '95', toy: 'chip' },
+    ],
     about: [
-      'I like the parts of software nobody sees: the queue that doesn’t drop a message, the query that came down from 150 ms to 20, the app that opens before you notice it opening.',
-      'Most of my work sits where the backend meets the interface. I design the data layer, the pipeline and the screen on top of it, and I measure everything twice.',
+      'I’m a software engineer at lapwork, working on an offline-first Windows app built with Electron, React and SQLite.',
+      'I like the unglamorous parts: the cold start, the query plan, the queue that must not drop a message. I measure before I change anything, and I keep the numbers.',
     ],
-    /** big numbers in the about section */
-    highlights: [
-      { value: '65%', label: 'faster app start-up', note: '3.4 s → 1.2 s, by code splitting and lazy loading' },
-      { value: '87%', label: 'lower query latency', note: '150 ms → 20 ms in SQLite, with prepared statements' },
-      { value: '95', label: 'doors, from 168 detections', note: 'reconciled across a full CAD plan set in about 23 s' },
-    ],
+    /** the closing line */
+    contact: 'Got something *slow?*',
   },
   email: 'srivastavarishabh2001@gmail.com',
   links: [

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { site, type Island } from '../site.config';
 import github from '../data/github.json';
 import { FloatToy, toySrc } from './Toy';
@@ -10,6 +10,17 @@ const ext = { target: '_blank', rel: 'noopener' } as const;
 type Of<K extends Island['kind']> = Extract<Island, { kind: K }>;
 const of = <K extends Island['kind']>(k: K) => site.islands.filter(i => i.kind === k) as Of<K>[];
 
+/** *stars* become the accent colour; with `rise`, every word lifts into place one after another */
+function rich(text: string, rise = false) {
+  let n = 0;
+  return text.split(/(\*[^*]+\*)/).filter(Boolean).map((part, i) => {
+    const hot = part.startsWith('*'), body = hot ? part.slice(1, -1) : part;
+    const words = body.split(/(\s+)/).map((w, j) => (w === '/' ? <br key={j} /> : /^\s+$/.test(w) || !rise ? <Fragment key={j}>{w}</Fragment>
+      : <span key={j} className="w"><span style={{ animationDelay: `${0.12 + n++ * 0.07}s` }}>{w}</span></span>));
+    return hot ? <em key={i}>{words}</em> : <Fragment key={i}>{words}</Fragment>;
+  });
+}
+
 /** adds .is-in to anything with data-reveal as it scrolls into view */
 function useReveal() {
   useEffect(() => {
@@ -17,11 +28,6 @@ function useReveal() {
     document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
     return () => io.disconnect();
   }, []);
-}
-
-/** the island glyph, from the world's logo */
-function Mark({ className = '' }: { className?: string }) {
-  return <svg className={`mark ${className}`} viewBox="0 0 32 32" aria-hidden="true"><path d="M4 12.5h24M7 12.5l4.5 6.5 2.5-2 2 6 2.5-3.5 2 2.5 4.5-9.5M14 12.5V8.5l2-3 2 3v4" /></svg>;
 }
 
 /* ── nav ── */
@@ -42,82 +48,64 @@ function Nav() {
   }, []);
   return (
     <header className={`nav${scrolled ? ' is-scrolled' : ''}${open ? ' is-open' : ''}`}>
-      <a className="nav-brand" href="#top" aria-label={`${site.name}, back to top`}><Mark /><span>{site.name.split(' ')[0]}</span></a>
-      <nav className="nav-links" aria-label="Sections">
+      <a className="brand" href="#top" aria-label={`${site.name}, back to top`}><i>{site.name[0]}</i><span>{site.name}</span></a>
+      <nav className="links" aria-label="Sections">
         {SECTIONS.map(([id, label]) => <a key={id} href={`#${id}`} className={here === id ? 'is-here' : ''} onClick={() => setOpen(false)}>{label}</a>)}
       </nav>
-      <a className="nav-world" href={WORLD}><span className="nav-world-dot" /><span><span className="nw-long">Enter the </span>3D world</span><span aria-hidden="true">↗</span></a>
-      <button className="nav-menu" aria-expanded={open} aria-label="Menu" onClick={() => setOpen(o => !o)}><i /><i /></button>
+      <a className="btn btn-dark btn-nav" href={WORLD}><span className="blip" />3D world <span aria-hidden="true">↗</span></a>
+      <button className="menu" aria-expanded={open} aria-label="Menu" onClick={() => setOpen(o => !o)}><i /><i /></button>
     </header>
   );
 }
 
-/* ── hero ── */
-/** toys orbit the copy, not the screen's edges, stepping down in a zig-zag: two near (sharp), two far (softer, slower parallax) */
-const DECOR = [
-  { name: 'cloud', size: 168, style: { left: '0%', top: '0%' }, depth: 0.7, delay: 0.5, tilt: -4, far: true, says: ['it’s someone else’s computer', 'multi-AZ, obviously', 'scaling to zero…'] },
-  { name: 'lock', size: 98, style: { right: '6%', top: '24%' }, depth: 1.8, delay: 0.65, tilt: 9, says: ['TLS 1.3 ✓', '401 · nice try', 'least privilege, always'] },
-  { name: 'globe', size: 136, style: { right: '0%', top: '74%' }, depth: 0.8, delay: 0.85, tilt: -6, far: true, says: ['edge hit · 12 ms', 'served from the nearest PoP', 'ap-south-1 says hi'] },
-  { name: 'container', size: 108, style: { left: '7%', top: '54%' }, depth: 2, delay: 1.0, tilt: 7, says: ['docker compose up', 'image: 41 MB', 'it works on my machine'] },
-];
-
-/** the headline, one masked word at a time; *stars* still become italics */
-function headlineWords(text: string) {
-  let n = 0;
-  return text.split(/(\*[^*]+\*)/).filter(Boolean).flatMap((seg, si) => {
-    const italic = seg.startsWith('*');
-    return (italic ? seg.slice(1, -1) : seg).split(/(\s+)/).filter(Boolean).map((w, wi) => (/^\s+$/.test(w) ? ' ' : (
-      <span className="w" key={`${si}-${wi}`}><span style={{ '--i': n++ } as CSSProperties}>{italic ? <em>{w}</em> : w}</span></span>
-    )));
-  });
-}
-
+/* ── hero: the claim on the left, the proof on the right ── */
 function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const el = ref.current!;
-    let raf = 0;
-    const move = (e: PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => { el.style.setProperty('--px', ((e.clientX / innerWidth) * 2 - 1).toFixed(3)); el.style.setProperty('--py', ((e.clientY / innerHeight) * 2 - 1).toFixed(3)); });
-    };
-    addEventListener('pointermove', move, { passive: true });
-    return () => removeEventListener('pointermove', move);
-  }, []);
   const [first] = site.location.split(' · ');
   return (
-    <>
-      <section className="hero" id="top" ref={ref}>
-        <div className="hero-stage">
-          <div className="hero-decor" aria-label="Toys from a server room: pick them up, or click them">
-            {DECOR.map(d => <FloatToy key={d.name} {...d} alt={`A toy ${d.name}`} />)}
-          </div>
-          <div className="hero-copy">
-            <p className="hero-k"><span className="dot" />{site.role} · {first}</p>
-            <h1 className="hero-h" aria-label={site.page.headline.replace(/\*/g, '')}><span aria-hidden="true">{headlineWords(site.page.headline)}</span></h1>
-            <p className="hero-intro">{site.page.intro}</p>
-            <div className="hero-cta">
-              <a className="btn btn-dark" href={WORLD}><Mark className="btn-mark" />Enter the 3D world</a>
-              <a className="btn btn-line" href="#work">See my work <span aria-hidden="true">↓</span></a>
-            </div>
-          </div>
+    <section className="hero" id="top">
+      <div className="hero-copy">
+        <p className="kick"><span className="dot" />{site.role} · {first}</p>
+        <h1 className="hero-h">{rich(site.page.headline, true)}</h1>
+        <p className="hero-intro">{site.page.intro}</p>
+        <div className="hero-cta">
+          <a className="btn btn-dark" href="#work">See my work <span aria-hidden="true">↓</span></a>
+          <a className="btn btn-light" href={WORLD}>Enter the 3D world <span aria-hidden="true">↗</span></a>
         </div>
-        <a className="hero-cue" href="#live"><span>a live system is running below</span><i aria-hidden="true" /></a>
-      </section>
-      <section className="live" id="live" aria-label="A small system running in your browser">
-        <div className="hero-sys" data-reveal><System /></div>
-      </section>
-    </>
+      </div>
+      <ol className="proofs" aria-label="Before and after">
+        {site.page.proofs.map((p, i) => (
+          <li key={p.label} className="proof" style={{ '--i': i } as CSSProperties}>
+            <p className="label">{p.label}</p>
+            <p className="ba"><s>{p.from}</s><span className="arr" aria-label="to">→</span><b>{p.to}</b></p>
+            <img src={toySrc(p.toy)} alt="" draggable={false} />
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
-function SecHead({ n, k, title, lead }: { n: string; k: string; title: ReactNode; lead?: ReactNode }) {
+function Head({ n, k, title, lead, center }: { n: string; k: string; title: ReactNode; lead?: ReactNode; center?: boolean }) {
   return (
-    <div className="sec-head" data-reveal>
-      <p className="sec-k"><span className="sec-n">{n}</span>{k}</p>
-      <h2 className="sec-h">{title}</h2>
-      {lead && <p className="sec-lead">{lead}</p>}
+    <div className={`head${center ? ' is-center' : ''}`} data-reveal>
+      <p className="label"><span className="num">{n}</span>{k}</p>
+      <h2 className="h2">{title}</h2>
+      {lead && <p className="lead">{lead}</p>}
     </div>
+  );
+}
+const Stack = ({ items }: { items: string[] }) => <ul className="stack">{items.map(s => <li key={s}>{s}</li>)}</ul>;
+
+/* ── the live system ── */
+function Live() {
+  return (
+    <section className="sec" id="live">
+      <div className="live-toys">
+        <FloatToy name="cloud" size={128} style={{ right: '2%', top: 6 }} depth={1.2} delay={0.1} tilt={-4} says={['multi-AZ, obviously', 'it’s someone else’s computer', 'scaling to zero…']} alt="A toy cloud" />
+      </div>
+      <Head n="01" k="Live" title={<>Go on, <em>break something.</em></>} lead="A small system is running in your browser right now. Kill a server and the load balancer routes around it. Flush the cache and watch latency climb." />
+      <div data-reveal><System /></div>
+    </section>
   );
 }
 
@@ -133,17 +121,17 @@ function Work() {
   const projects = of('project').map((p, i) => ({ p, i })).sort((a, b) => (a.p.rank ?? 99) - (b.p.rank ?? 99) || a.i - b.i).map(x => x.p);
   return (
     <section className="sec" id="work">
-      <SecHead n="01" k="Selected work" title={<>Things I’ve <em>built</em>, and how they work.</>} lead="Each one runs on its own below: a little moving sketch of what the code actually does." />
+      <Head n="02" k="Work" title={<>Things I’ve <em>built.</em></>} lead="Each one comes with a small moving sketch of what the code actually does." />
       <div className="work">
         {projects.map((p, i) => (
           <article key={p.title} className={`proj${i % 2 ? ' is-flip' : ''}`} data-reveal>
             <div className="proj-vis"><Visual p={p} /></div>
             <div className="proj-text">
-              <p className="proj-k">Project {String(i + 1).padStart(2, '0')}</p>
-              <h3 className="proj-h">{p.title}</h3>
-              <ul className="chips">{p.stack.split(', ').map(s => <li key={s}>{s}</li>)}</ul>
-              <ul className="proj-points">{p.points.map((pt, j) => <li key={j}>{pt}</li>)}</ul>
-              {p.links.length > 0 && <p className="proj-links">{p.links.map(l => <a key={l.url} href={l.url} {...ext} className="btn btn-line btn-sm">{l.label} <span aria-hidden="true">↗</span></a>)}</p>}
+              <p className="label">Project {String(i + 1).padStart(2, '0')}</p>
+              <h3 className="h3">{p.title}</h3>
+              <Stack items={p.stack.split(', ')} />
+              <ul className="points">{p.points.map((pt, j) => <li key={j}>{pt}</li>)}</ul>
+              {p.links.length > 0 && <p className="row">{p.links.map(l => <a key={l.url} href={l.url} {...ext} className="btn btn-light btn-sm">{l.label} <span aria-hidden="true">↗</span></a>)}</p>}
             </div>
           </article>
         ))}
@@ -152,27 +140,7 @@ function Work() {
   );
 }
 
-/* ── about ── */
-function useCount(target: number, on: boolean) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    if (!on) return;
-    let raf = 0; const t0 = performance.now();
-    const f = (t: number) => { const k = Math.min(1, (t - t0) / 1400); setV(Math.round(target * (1 - (1 - k) ** 3))); if (k < 1) raf = requestAnimationFrame(f); };
-    raf = requestAnimationFrame(f);
-    return () => cancelAnimationFrame(raf);
-  }, [target, on]);
-  return v;
-}
-function Big({ value }: { value: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [on, setOn] = useState(false);
-  useEffect(() => { const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { threshold: 0.6 }); io.observe(ref.current!); return () => io.disconnect(); }, []);
-  const m = value.match(/^(\D*)(\d+)(.*)$/);
-  const n = useCount(m ? Number(m[2]) : 0, on);
-  return <span ref={ref}>{m ? `${m[1]}${n}${m[3]}` : value}</span>;
-}
-
+/* ── about: a short note, the GitHub year, the toolbox ── */
 const LEVELS = [0, 1, 2, 3, 4];
 type Cal = { total: number; updated: string; days: { date: string; week: number; weekday: number; level: number; count: number }[] };
 /** the live calendar from /api/github; until it arrives (or if it can't), the snapshot saved at build time */
@@ -188,7 +156,6 @@ function useGithub(user: string) {
   }, [user]);
   return data;
 }
-
 function Calendar() {
   const user = of('github')[0]?.user ?? 'binaryrishabh';
   const gh = useGithub(user);
@@ -204,10 +171,13 @@ function Calendar() {
   const active = days.filter(d => d.count > 0).length;
   const busiest = days.reduce((a, d) => (d.count > a.count ? d : a), days[0]);
   return (
-    <div className="cal card" data-reveal>
-      <div className="cal-head">
-        <div><p className="card-k">A year on GitHub {gh.live && <span className="cal-live"><i />live</span>}</p><p className="cal-total"><b>{gh.total.toLocaleString('en-US')}</b> contributions on <b>{active}</b> days</p></div>
-        <a href={`https://github.com/${user}`} {...ext} className="btn btn-line btn-sm">github.com/{user} <span aria-hidden="true">↗</span></a>
+    <div className="panel cal" data-reveal>
+      <div className="panel-head">
+        <div>
+          <p className="label">A year on GitHub {gh.live && <span className="live"><i />live</span>}</p>
+          <p className="cal-total"><b>{gh.total.toLocaleString('en-US')}</b> contributions on <b>{active}</b> days</p>
+        </div>
+        <a href={`https://github.com/${user}`} {...ext} className="btn btn-light btn-sm">github.com/{user} <span aria-hidden="true">↗</span></a>
       </div>
       <div className="cal-scroll">
         <div className="cal-grid" style={{ gridTemplateColumns: `repeat(${weeks}, minmax(0, 1fr))` }} onMouseLeave={() => setTip(null)}>
@@ -231,38 +201,23 @@ function About() {
   const skills = of('skills')[0];
   return (
     <section className="sec" id="about">
-      <SecHead n="02" k="About" title={<>The backend, the interface, <em>and the wire between.</em></>} />
-      <div className="about" data-reveal>
-        <div className="about-text">{site.page.about.map((p, i) => <p key={i}>{p}</p>)}</div>
-        <div className="about-desk" aria-hidden="true">
-          <img src={toySrc('terminal')} alt="" className="desk desk-1" />
-          <img src={toySrc('chip')} alt="" className="desk desk-2" />
-          <img src={toySrc('server')} alt="" className="desk desk-3" />
-          <span className="desk-note">my desk, roughly</span>
+      <div className="about">
+        <Head n="03" k="About" title={<>Where the backend <em>meets the screen.</em></>} />
+        <div className="about-body" data-reveal>
+          {site.page.about.map((p, i) => <p key={i} className={i ? '' : 'big'}>{p}</p>)}
         </div>
-      </div>
-      <div className="nums">
-        {site.page.highlights.map(h => (
-          <div key={h.label} className="num" data-reveal>
-            <p className="num-v"><Big value={h.value} /></p>
-            <p className="num-l">{h.label}</p>
-            <p className="num-n">{h.note}</p>
-          </div>
-        ))}
       </div>
       <Calendar />
       {skills && (
-        <div className="kit">
-          <p className="kit-k" data-reveal>The toolbox</p>
-          <div className="kit-grid">
-            {skills.groups.map(g => (
-              <div key={g.name} className="kit-card card" data-reveal>
-                <img src={toySrc(g.toy ?? 'gear')} alt="" className="kit-toy" />
-                <p className="card-k">{g.name}</p>
-                <ul className="chips">{g.items.map(t => <li key={t}>{t}</li>)}</ul>
-              </div>
-            ))}
-          </div>
+        <div className="panel kit" data-reveal>
+          <p className="label">The toolbox</p>
+          {skills.groups.map(g => (
+            <div key={g.name} className="kit-row">
+              <img src={toySrc(g.toy ?? 'gear')} alt="" />
+              <p className="kit-name">{g.name}</p>
+              <Stack items={g.items} />
+            </div>
+          ))}
         </div>
       )}
     </section>
@@ -276,33 +231,28 @@ function Experience() {
   const stats = of('stats');
   return (
     <section className="sec" id="experience">
-      <SecHead n="03" k="Experience" title={<>Where I’ve been <em>building.</em></>} />
+      <Head n="04" k="Experience" title={<>Where I’ve <em>worked.</em></>} />
       <ol className="tl">
         {roles.map(r => (
-          <li key={r.org + r.role} className="tl-item" data-reveal>
-            <div className="tl-side"><img src={toySrc('terminal')} alt="" /><p className="tl-when">{r.period}</p></div>
-            <div className="tl-body card">
-              <p className="card-k">{r.place}</p>
-              <h3 className="tl-h">{r.role} · {r.url ? <a href={r.url} {...ext}>{r.org}</a> : r.org}</h3>
-              <ul className="chips">{r.stack.split(', ').map(s => <li key={s}>{s}</li>)}</ul>
-              <ul className="proj-points">{r.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
+          <li key={r.org + r.role} className="panel tl-item" data-reveal>
+            <div className="tl-side"><img src={toySrc('terminal')} alt="" /><p className="when">{r.period}</p><p className="where">{r.place}</p></div>
+            <div>
+              <h3 className="h3">{r.role}, {r.url ? <a href={r.url} {...ext}>{r.org}</a> : r.org}</h3>
+              <Stack items={r.stack.split(', ')} />
+              <ul className="points">{r.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
             </div>
           </li>
         ))}
         {edu.map(e => (
-          <li key={e.school} className="tl-item" data-reveal>
-            <div className="tl-side"><img src={toySrc('globe')} alt="" /><p className="tl-when">{e.period ?? 'Education'}</p></div>
-            <div className="tl-body card">
-              <p className="card-k">{e.title} · {e.place}</p>
-              <h3 className="tl-h">{e.school}</h3>
-              <p className="tl-p">{e.degree}</p>
-            </div>
+          <li key={e.school} className="panel tl-item" data-reveal>
+            <div className="tl-side"><img src={toySrc('globe')} alt="" /><p className="when">{e.period ?? 'Education'}</p><p className="where">{e.place}</p></div>
+            <div><h3 className="h3">{e.school}</h3><p className="tl-p">{e.degree}</p></div>
           </li>
         ))}
       </ol>
       {stats.map(s => (
-        <div key={s.title} className="cp card" data-reveal>
-          <div className="cp-head"><img src={toySrc('chip')} alt="" /><div><p className="card-k">Practice</p><h3 className="tl-h">{s.title}</h3></div></div>
+        <div key={s.title} className="cp" data-reveal>
+          <p className="label">{s.title}</p>
           <div className="cp-grid">
             {s.items.map(it => (
               <a key={it.label} href={it.url} {...ext} className="cp-item">
@@ -321,15 +271,15 @@ function Experience() {
 /* ── the door into the world ── */
 function Portal() {
   return (
-    <section className="portal" aria-labelledby="portal-h">
-      <a className="portal-card" href={WORLD} data-reveal>
+    <section className="sec">
+      <a className="portal" href={WORLD} data-reveal>
         <div className="portal-art" aria-hidden="true"><img src="/loading/art-01.webp" alt="" /></div>
         <div className="portal-text">
-          <p className="portal-k"><Mark />04 · The world</p>
-          <h2 id="portal-h">Prefer to explore? <em>There’s a whole world.</em></h2>
-          <p>Every part of this page is also a floating island. Fly a drone between them, follow the rope bridges, listen for the waterfalls and find the lighthouse.</p>
+          <p className="label"><span className="num">05</span>The 3D world</p>
+          <h2 className="h2">Rather explore? <em>Fly through it.</em></h2>
+          <p>Every section of this page is also a floating island. Fly a drone between them, cross the rope bridges and find the lighthouse.</p>
           <span className="btn btn-light">Enter the 3D world <span aria-hidden="true">↗</span></span>
-          <p className="portal-note">Best on a laptop or desktop, with sound on.</p>
+          <p className="note">Best on a laptop or desktop, with sound on.</p>
         </div>
       </a>
     </section>
@@ -345,19 +295,16 @@ function Contact() {
   };
   return (
     <section className="sec contact" id="contact">
-      <div className="contact-toys" aria-hidden="true">
-        <img src={toySrc('envelope')} alt="" className="ct ct-1" /><img src={toySrc('packet')} alt="" className="ct ct-2" /><img src={toySrc('router')} alt="" className="ct ct-3" />
-      </div>
-      <p className="sec-k" data-reveal><span className="sec-n">05</span>Contact</p>
-      <h2 className="contact-h" data-reveal>Let’s build something that <em>stays up.</em></h2>
-      <p className="contact-lead" data-reveal>The quickest way to reach me is email.</p>
-      <div className="contact-row" data-reveal>
+      <FloatToy name="envelope" size={130} style={{ left: '3%', top: 90 }} depth={1.4} tilt={-12} says={['POST /contact 201', 'delivered, at least once']} alt="A toy envelope" />
+      <FloatToy name="router" size={120} style={{ right: '4%', top: 150 }} depth={1.8} delay={0.3} tilt={9} says={['200 OK', 'routing you to my inbox']} alt="A toy router" />
+      <p className="label is-center" data-reveal><span className="num">06</span>Contact</p>
+      <h2 className="contact-h" data-reveal>{rich(site.page.contact)}</h2>
+      <p className="lead is-center" data-reveal>Send it over. The quickest way to reach me is email.</p>
+      <div className="row is-center" data-reveal>
         <button className={`mail${copied ? ' is-copied' : ''}`} onClick={copy}>
-          <span className="mail-addr">{site.email}</span>
-          <span className="mail-act">{copied ? 'Copied ✓' : 'Copy'}</span>
+          <span>{site.email}</span><span className="mail-act">{copied ? 'Copied ✓' : 'Copy'}</span>
         </button>
-        <a className="btn btn-line" href={`mailto:${site.email}`}>Write an email</a>
-        {site.links.map(l => <a key={l.url} className="btn btn-line" href={l.url} {...ext}>{l.label} <span aria-hidden="true">↗</span></a>)}
+        {site.links.map(l => <a key={l.url} className="btn btn-light" href={l.url} {...ext}>{l.label} <span aria-hidden="true">↗</span></a>)}
       </div>
     </section>
   );
@@ -366,9 +313,9 @@ function Contact() {
 function Footer() {
   return (
     <footer className="foot">
-      <p className="foot-status"><span className="dot" />All systems operational</p>
+      <p className="ok"><span className="dot" />All systems operational</p>
       <p>© {new Date().getFullYear()} {site.name}</p>
-      <p>Built by hand: React, TypeScript, and sixteen toys rendered from signed distance fields. <a href={WORLD}>The world ↗</a></p>
+      <p><a href={WORLD}>The 3D world ↗</a></p>
     </footer>
   );
 }
@@ -380,6 +327,7 @@ export function Landing() {
       <Nav />
       <main>
         <Hero />
+        <Live />
         <Work />
         <About />
         <Experience />
