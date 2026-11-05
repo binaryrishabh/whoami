@@ -4,3 +4,6 @@ dist/
 .DS_Store
 .vite/
 tools/toys/out/
+
+.vercel
+.env*
